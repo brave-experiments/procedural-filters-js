@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section>
+      <div class="barf" result="hidden">
+        This should be hidden, bc its a sibling of a container with "A d" in it
+      </div>
+      <div class="items">
+        Sponsored
+      </div>
+      <div class="container">
+        Ad
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        Ad
+      </div>
+      <div class="items">
+        Sponsored
+      </div>
+      <div class="barf">
+        This should NOT be hidden, bc ".container" is not the next sibling of ".item"
+      </div>
+    </section>
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "css-selector",
+            selector: ".items"
+          },
+          {
+            type: "has-text",
+            text: "Sponsored"
+          },
+          {
+            type: "css-selector",
+            selector: " + .container"
+          },
+          {
+            type: "has-text",
+            text: "Ad"
+          },
+          {
+            type: "css-selector",
+            selector: " ~ div.barf"
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

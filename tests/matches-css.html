@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <style>
+      div p {
+        background-color: red;
+      }
+      div p#the-one,
+      #the-other-one {
+        opacity: 0.9;
+      }
+    </style>
+    <section>
+      <h2><code>:matches-css</code></h2>
+      <div>
+        <p>This should not be hidden</p>
+        <p id="the-one" result="hidden">This should be hidden</p>
+      </div>
+      <p>This should not be hidden</p>
+      <p id="the-other-one" result="hidden">This should be hidden</p>
+    </section>
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "matches-css",
+            arg: "opacity: 0.9"
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

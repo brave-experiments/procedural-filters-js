@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <div class="items" style="display: none">Sponsored</div>
+    <div class="container" result="hidden">This should be hidden bc of the text "Ad"</div>
+
+    <div class="items" style="display: none">Sponsored</div>
+    <div class="container">This should NOT hidden bc of there is no text "A d"</div>
+
+    <div class="items" style="display: none"></div>
+    <div class="container">This should NOT hidden bc the previous sibling does not say "Sponsored", even though this says "Ad"</div>
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        // .items:has-text(Sponsored) + .container:has-text(Ad)
+        mod.run([
+          {
+            type: "css-selector",
+            selector: ".items"
+          },
+          {
+            type: "has-text",
+            text: "Sponsored"
+          },
+          {
+            type: "css-selector",
+            selector: " + .container"
+          },
+          {
+            type: "has-text",
+            text: "Ad"
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

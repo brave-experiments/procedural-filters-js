@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section>
+      <h2>String cases for <code>:matches-attr</code></h2>
+      <div test-attr="test-value" result="hidden">
+        This should be hidden.
+      </div>
+      <div diff-attr="test-value">
+        This should not be hidden.
+      </div>
+      <div test-attr="diff-value">
+        This should not be hidden.
+      </div>
+      <div diff-attr="diff-value">
+        This should not be hidden.
+      </div>
+    </section>
+
+    <section>
+      <h2>Regex cases for <code>:matches-attr</code></h2>
+      <div test-yes-attr="test-yes-value" result="hidden">
+        This should be hidden.
+      </div>
+      <div test-yes-attr="test-no-value">
+        This should not be hidden.
+      </div>
+      <div test-no-attr="test-yes-value">
+        This should not be hidden.
+      </div>
+      <div test-no-attr="test-no-value">
+        This should not be hidden.
+      </div>
+    </section>
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "matches-attr",
+            arg: "\"test-attr\"=\"test-value\""
+          }
+        ])
+        mod.run([
+          {
+            type: "matches-attr",
+            arg: "\"/test-y.{2}-attr/\"=\"/test-y[a-z]s-value/\""
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

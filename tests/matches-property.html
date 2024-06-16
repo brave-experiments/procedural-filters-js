@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section>
+      <h2><code>:matches-property</code>: string cases</h2>
+      <p data-prop-name="yes" data-prop-value="yes" result="hidden">Should be hidden</p>
+      <p data-prop-name="yes" data-prop-value="no">Should not be hidden</p>
+      <p data-prop-name="no" data-prop-value="yes">Should not be hidden</p>
+      <p data-prop-name="no" data-prop-value="no">Should not be hidden</p>
+    </section>
+
+    <section>
+      <h2><code>:matches-property</code>: RegEx cases</h2>
+      <p data-prop-name="it-yes-attr" data-prop-value="it-yes-value" result="hidden">Should be hidden</p>
+      <p data-prop-name="it-yes-attr" data-prop-value="it-no-value">Should not be hidden</p>
+      <p data-prop-name="it-no-attr" data-prop-value="it-yes-value">Should not be hidden</p>
+      <p data-prop-name="it-no-attr" data-prop-value="it-no-value">Should not be hidden</p>
+    </section>
+
+    <script>
+      for (const elm of document.getElementsByTagName('p')) {
+        const propName = elm.dataset.propName
+        const propVal = elm.dataset.propValue
+        elm[propName] = propVal
+      }
+    </script>
+
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "matches-property",
+            arg: "\"yes\"=\"yes\""
+          }
+        ])
+        mod.run([
+          {
+            type: "matches-property",
+            arg: "\"/it-[a-z]{3}-attr/\"=\"/it-[a-z]{3}-value/\""
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

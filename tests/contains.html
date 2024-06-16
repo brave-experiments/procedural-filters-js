@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section id="string-cases">
+      <h2>String cases for <code>:contains</code></h2>
+      <div result="hidden">
+        <p>Please hide me.</p>
+      </div>
+      <div>
+        <p>Fake out hide.</p>
+      </div>
+      <div>
+        <p>And do not hide this element.</p>
+      </div>
+    </section>
+
+    <section id="regex-cases">
+      <h2>RegEx cases for <code>:contains</code></h2>
+      <div result="hidden">
+        <p>This should be hidden.</p>
+      </div>
+      <div>
+        <p>This should be hidden (but not really).</p>
+      </div>
+      <div>
+        <p>This should not be hidden.</p>
+      </div>
+    </section>
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "css-selector",
+            selector: "section#string-cases > div"
+          },
+          {
+            type: "contains",
+            arg: "hide me"
+          }
+        ])
+        mod.run([
+        {
+            type: "css-selector",
+            selector: "section#regex-cases > div"
+          },
+          {
+            type: "contains",
+            arg: "/should be [a-z]{6}\\./"
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>
