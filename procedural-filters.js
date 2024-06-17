@@ -140,10 +140,10 @@ const proceduralOperatorMatchesAttr = (instruction, element) => {
 }
 
 // Implementation of ":matches-css-*" rules
-const proceduralOperatorMatchesCSS = (cssInstruction, beforeOrAfter, element) => {
+const proceduralOperatorMatchesCSS = (beforeOrAfter, cssInstruction, element) => {
   const cssInstructionBits = cssInstruction.split(': ')
   const [cssKey, cssVal] = cssInstructionBits
-
+  console.log(beforeOrAfter, cssInstruction, element)
   const elmStyle = W.getComputedStyle(element, beforeOrAfter)
   const styleValue = elmStyle[cssKey]
   if (styleValue === undefined) {
@@ -194,54 +194,26 @@ const proceduralOperatorNthAncestor = (instruction, element) => {
   return curNode
 }
 
+const ruleTypeToFuncMap = {
+  'css-selector': proceduralOperatorCssSelector,
+  contains: proceduralOperatorContains,
+  'has-text': proceduralOperatorHasText,
+  'matches-property': proceduralOperatorMatchesProperty,
+  'matches-attr': proceduralOperatorMatchesAttr,
+  'matches-css': proceduralOperatorMatchesCSS.bind(undefined, null),
+  'matches-css-before': proceduralOperatorMatchesCSS.bind(undefined, '::before'),
+  'matches-css-after': proceduralOperatorMatchesCSS.bind(undefined, '::after'),
+  upward: proceduralOperatorUpward,
+  'nth-ancestor': proceduralOperatorNthAncestor
+}
+
 const buildProceduralFilter = (ruleList) => {
   const operatorList = []
   for (const rule of ruleList) {
-    let anOperatorFunc, args
-
-    switch (rule.type) {
-      case 'css-selector':
-        args = [rule.selector]
-        anOperatorFunc = proceduralOperatorCssSelector
-        break
-      case 'contains':
-        args = [rule.arg]
-        anOperatorFunc = proceduralOperatorContains
-        break
-      case 'has-text':
-        args = [rule.text]
-        anOperatorFunc = proceduralOperatorHasText
-        break
-      case 'matches-property':
-        args = [rule.arg]
-        anOperatorFunc = proceduralOperatorMatchesProperty
-        break
-      case 'matches-attr':
-        args = [rule.arg]
-        anOperatorFunc = proceduralOperatorMatchesAttr
-        break
-      case 'matches-css':
-        args = [rule.arg, null]
-        anOperatorFunc = proceduralOperatorMatchesCSS
-        break
-      case 'matches-css-after':
-        args = [rule.arg, '::after']
-        anOperatorFunc = proceduralOperatorMatchesCSS
-        break
-      case 'matches-css-before':
-        args = [rule.arg, '::before']
-        anOperatorFunc = proceduralOperatorMatchesCSS
-        break
-      case 'upward':
-        args = [rule.arg]
-        anOperatorFunc = proceduralOperatorUpward
-        break
-      case 'nth-ancestor':
-        args = [rule.arg]
-        anOperatorFunc = proceduralOperatorNthAncestor
-        break
-      default:
-        throw new Error(`Not sure what to do with rule of type ${rule.type}`)
+    const anOperatorFunc = ruleTypeToFuncMap[rule.type]
+    const args = [rule.arg]
+    if (anOperatorFunc === undefined) {
+      throw new Error(`Not sure what to do with rule of type ${rule.type}`)
     }
 
     operatorList.push({

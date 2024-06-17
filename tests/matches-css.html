@@ -8,22 +8,32 @@
   </head>
   <body>
     <style>
-      div p {
-        background-color: red;
-      }
-      div p#the-one,
-      #the-other-one {
+      .needle {
         opacity: 0.9;
+      }
+      .other-needle::before {
+        display: inline-block;
       }
     </style>
     <section>
       <h2><code>:matches-css</code></h2>
       <div>
         <p>This should not be hidden</p>
-        <p id="the-one" result="hidden">This should be hidden</p>
+        <p class="needle" result="hidden">This should be hidden</p>
       </div>
       <p>This should not be hidden</p>
-      <p id="the-other-one" result="hidden">This should be hidden</p>
+      <p class="needle" result="hidden">This should be hidden</p>
+    </section>
+
+    <section>
+      <h2><code>:matches-css-before</code></h2>
+      <div>
+        <p class="other-needle" result="hidden">This should be hidden</p>
+      </div>
+      <div>
+        <span class="other-needle"></span>
+        <span>This should not be hidden</span>
+      </div>
     </section>
     <script>
       import("/procedural-filters.js").then(async mod => {
@@ -31,6 +41,12 @@
           {
             type: "matches-css",
             arg: "opacity: 0.9"
+          }
+        ])
+        mod.run([
+          {
+            type: "matches-css-before",
+            arg: "display: inline-block"
           }
         ])
       })
