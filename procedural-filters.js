@@ -39,7 +39,8 @@ const testMatches = (test, value, exact = false) => {
 const proceduralOperatorCssSelector = (selector, element) => {
   const _stripOperator = (operator, selector) => {
     if (selector[0] !== operator) {
-      throw new Error(`Expected to find ${operator} in initial position of "${selector}`)
+      console.error(`Expected to find ${operator} in initial position of "${selector}`)
+      return null
     }
     return selector.replace(operator, '').trimStart()
   }
@@ -58,6 +59,9 @@ const proceduralOperatorCssSelector = (selector, element) => {
   const trimmedSelector = selector.trimStart()
   if (trimmedSelector.startsWith('+') === true) {
     const subOperator = _stripOperator('+', trimmedSelector)
+    if (subOperator === null) {
+      return null
+    }
     const nextSibNode = _nextSibling(element)
     if (nextSibNode === undefined) {
       return null
@@ -67,6 +71,9 @@ const proceduralOperatorCssSelector = (selector, element) => {
 
   if (trimmedSelector.startsWith('~') === true) {
     const subOperator = _stripOperator('~', trimmedSelector)
+    if (subOperator === null) {
+      return null
+    }
     const allSiblingNodes = _allSiblings(element)
     return allSiblingNodes.filter(x => x.matches(subOperator))
   }
@@ -86,6 +93,7 @@ const proceduralOperatorHasText = (instruction, element) => {
     console.error(
       `Invalid argument for :has-text. Received ${instruction} but ` +
       ':has-text does not accept regex arguments.')
+    return null
   }
   return proceduralOperatorContains(instruction, element)
 }
@@ -94,7 +102,7 @@ const proceduralOperatorHasText = (instruction, element) => {
 const proceduralOperatorMatchesProperty = (instruction, element) => {
   const tests = _parseKeyValueMatchArg(instruction)
   if (tests === undefined) {
-    return null;
+    return null
   }
   const [keyTest, valueTest] = tests
 
@@ -114,7 +122,7 @@ const proceduralOperatorMatchesProperty = (instruction, element) => {
 const proceduralOperatorMatchesAttr = (instruction, element) => {
   const tests = _parseKeyValueMatchArg(instruction)
   if (tests === undefined) {
-    return null;
+    return null
   }
   const [attrTest, valueTest] = tests
 
@@ -239,7 +247,7 @@ const buildProceduralFilter = (ruleList) => {
     operatorList.push({
       type: rule.type,
       func: anOperatorFunc.bind(undefined, ...args),
-      args: args
+      args
     })
   }
 
@@ -324,7 +332,7 @@ export const run = (ruleList, pollingInterval = 0) => {
   prevNodes = hideOnlyCurMatchingNodes(matchingNodes, prevNodes)
 
   if (pollingInterval === 0) {
-    return;
+    return
   }
 
   const intervalId = W.setInterval(() => {
