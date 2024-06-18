@@ -8,32 +8,32 @@
   </head>
   <body>
     <div class="items" style="display: none">Sponsored</div>
-    <div class="container" result="hidden">This should be hidden bc of the text "Ad"</div>
+    <div class="container" expect="hidden">This should be hidden bc of the text "Ad"</div>
 
     <div class="items" style="display: none">Sponsored</div>
-    <div class="container">This should NOT hidden bc of there is no text "A d"</div>
+    <div class="container" expect="visible">This should NOT hidden bc of there is no text "A d"</div>
 
     <div class="items" style="display: none"></div>
-    <div class="container">This should NOT hidden bc the previous sibling does not say "Sponsored", even though this says "Ad"</div>
+    <div class="container" expect="visible">This should NOT hidden bc the previous sibling does not say "Sponsored", even though this says "Ad"</div>
     <script>
       import("/procedural-filters.js").then(async mod => {
         // .items:has-text(Sponsored) + .container:has-text(Ad)
         mod.run([
           {
             type: "css-selector",
-            selector: ".items"
+            arg: ".items"
           },
           {
             type: "has-text",
-            text: "Sponsored"
+            arg: "Sponsored"
           },
           {
             type: "css-selector",
-            selector: " + .container"
+            arg: " + .container"
           },
           {
             type: "has-text",
-            text: "Ad"
+            arg: "Ad"
           }
         ])
       })

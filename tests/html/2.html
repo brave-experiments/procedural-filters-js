@@ -10,42 +10,42 @@
     <div class="items">
       <p>
         This first paragraph has "Sponsored" in it, so
-        <span class="container" result="hidden">this text should be hidden</span>...
+        <span class="container" expect="hidden">this text should be hidden</span>...
       </p>
     </div>
     <div class="items">
-      <p>
+      <p expect="visible">
         This second paragraph does not have "S p o n s o r e d" in it, so
-        <span class="container">this text should NOT hidden</span>.
+        <span class="container" expect="visible">this text should NOT hidden</span>.
       </p>
     </div>
     <div class="items">
-      <p>
+      <p expect="visible">
         This third paragraph has "Sponsored" in it, but the next span
         does not have the "container" class, so
-        <span class="no-container">this text should NOT be hidden</span>.
+        <span class="no-container" expect="visible">this text should NOT be hidden</span>.
       </p>
     </div>
     <div>
       <p>
         This fourth paragraph has "Sponsored" in it, but is not in an "items"
-        element, so this <span class="container">this text should NOT hidden</span>.
+        element, so this <span class="container" expect="visible">this text should NOT hidden</span>.
       </p>
     </div>
     <script>
-      import("/procedural-filters.js").then(async mod => {
+      import("./procedural-filters.js").then(async mod => {
         mod.run([
           {
             type: "css-selector",
-            selector: ".items"
+            arg: ".items"
           },
           {
             type: "has-text",
-            text: "Sponsored"
+            arg: "Sponsored"
           },
           {
             type: "css-selector",
-            selector: ".container"
+            arg: ".container"
           }
         ])
       })

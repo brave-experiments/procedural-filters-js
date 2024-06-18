@@ -7,30 +7,30 @@
     <title>Procedural Filter Tests</title>
   </head>
   <body>
-    <p class="items" result="hidden">
+    <p class="items" expect="visible">
       This should be visible bc the word "S p o n s o r e d" does not appear
     </p>
-    <p class="items" result="hidden">
+    <p class="items" expect="hidden">
       This should be hidden because of the word "Sponsored"
     </p>
-    <p>
+    <p expect="visible">
       This should be visible bc it doesn't have the class "items" despite
       saying "Sponsored"
     </p>
-    <p>
+    <p expect="visible">
       This should be visible bc it doesn't have the class "items" nor
       the text sponsored
     </p>
     <script>
-      import("/procedural-filters.js").then(async mod => {
+      import("./procedural-filters.js").then(async mod => {
         mod.run([
           {
             type: "css-selector",
-            selector: ".items"
+            arg: ".items"
           },
           {
             type: "has-text",
-            text: "Sponsored"
+            arg: "Sponsored"
           }
         ])
       })

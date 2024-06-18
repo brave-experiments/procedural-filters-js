@@ -8,26 +8,28 @@ const _compileRegEx = (regexText) => {
   return regex
 }
 
-const _parseKeyValueMatchArg = (argStr) => {
-  const rs = argStr.match(/"(.*)"="(.*)"/)
-  if (!rs) {
-    console.error(`${argStr} did not match regex /"(.*)"="(.*)"/`)
-    return
-  }
-  return [rs[1], rs[2]]
-}
-
 // Check to see if the string `value` either
 // contains the the string `test` (if `test` does
 // not start with `/`) or if the string
 // value matches the regex `test`.
 // We assume if test isn't a string, its a regex object.
 //
+// Rules:
+//   - if `test` starts with `/` we treat it as a regex
+//     literal
+//   - if `text` is an empty string, we treat it as
+//     matching any case where value is only whitespace
+//   - otherwise, check to see if value contains the
+//     string `test`
+//
 // If `exact` is true, then the string case it tested
 // for an exact match (the regex case is not affected).
-const testMatches = (test, value, exact = false) => {
+const _testMatches = (test, value, exact = false) => {
   if (test[0] === '/') {
     return value.match(_compileRegEx(test)) !== null
+  }
+  if (test === '') {
+    return value.trim() === ''
   }
   if (exact === true) {
     return value === test
@@ -35,12 +37,73 @@ const testMatches = (test, value, exact = false) => {
   return value.includes(test)
 }
 
+const _extractKeyMatchRuleFromStr = (text) => {
+  const quotedTerminator = '"='
+  const unquotedTerminator = '='
+  const isQuotedCase = text[0] === '"'
+
+  const [terminator, needlePosition] = isQuotedCase
+    ? [quotedTerminator, 1]
+    : [unquotedTerminator, 0]
+
+  const indexOfTerminator = text.indexOf(terminator, needlePosition)
+  if (indexOfTerminator === -1) {
+    throw new Error(
+      `Unable to parse key rule from ${text}. Key rule starts with ` +
+      `${text[0]}, but doesn't include '${terminator}'`)
+  }
+
+  const testCaseStr = text.slice(needlePosition, indexOfTerminator)
+  const testCaseFunc = _testMatches.bind(undefined, testCaseStr)
+  const finalNeedlePosition = indexOfTerminator + terminator.length
+  return [testCaseFunc, finalNeedlePosition]
+}
+
+const _extractValueMatchRuleFromStr = (text, needlePosition = 0) => {
+  const isQuotedCase = text[needlePosition] === '"'
+  let endIndex
+
+  if (isQuotedCase) {
+    if (text.at(-1) !== '"') {
+      throw new Error(
+        `Unable to parse value rule from ${text}. Value rule starts with ` +
+        '" but doesn\'t end with "')
+    }
+    needlePosition += 1
+    endIndex = text.length - 1
+  } else {
+    endIndex = text.length
+  }
+
+  const testCaseStr = text.slice(needlePosition, endIndex)
+  const testCaseFunc = _testMatches.bind(undefined, testCaseStr)
+  return testCaseFunc
+}
+
+// Parse an argument like `"abc"="xyz"` into
+// a test for the key, and a test for the value.
+// This will return two functions then, that you
+// should use for checking the key and values
+// in your test case.
+//
+// const key = ..., value = ...
+// const [keyTestFunc, valueTestFunc] = _parseKeyValueMatchArg(arg)
+//
+// if (keyTestFunc(key) === true)) {
+//   // key matches the test condition
+// }
+const _parseKeyValueMatchRules = (argStr) => {
+  const [keyMatchRule, needlePos] = _extractKeyMatchRuleFromStr(argStr)
+  const valueMatchRule = _extractValueMatchRuleFromStr(argStr, needlePos)
+  return [keyMatchRule, valueMatchRule]
+}
+
 // Implementation of "css-selector" rule
 const proceduralOperatorCssSelector = (selector, element) => {
   const _stripOperator = (operator, selector) => {
     if (selector[0] !== operator) {
-      console.error(`Expected to find ${operator} in initial position of "${selector}`)
-      return null
+      throw new Error(
+        `Expected to find ${operator} in initial position of "${selector}`)
     }
     return selector.replace(operator, '').trimStart()
   }
@@ -81,36 +144,21 @@ const proceduralOperatorCssSelector = (selector, element) => {
   return Array.from(element.querySelectorAll(':scope ' + trimmedSelector))
 }
 
-// Implementation of ":contains" rule
-const proceduralOperatorContains = (instruction, element) => {
-  const text = element.innerText
-  return testMatches(instruction, text) ? element : null
-}
-
 // Implementation of ":has-text" rule
 const proceduralOperatorHasText = (instruction, element) => {
-  if (instruction[0] === '/') {
-    console.error(
-      `Invalid argument for :has-text. Received ${instruction} but ` +
-      ':has-text does not accept regex arguments.')
-    return null
-  }
-  return proceduralOperatorContains(instruction, element)
+  const text = element.innerText
+  const valueTest = _extractValueMatchRuleFromStr(instruction)
+  return valueTest(text) ? element : null
 }
 
 // Implementation of ":matches-property" rule
 const proceduralOperatorMatchesProperty = (instruction, element) => {
-  const tests = _parseKeyValueMatchArg(instruction)
-  if (tests === undefined) {
-    return null
-  }
-  const [keyTest, valueTest] = tests
-
+  const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction)
   for (const [propName, propValue] of Object.entries(element)) {
-    if (testMatches(keyTest, propName) === false) {
+    if (keyTest(propName) === false) {
       continue
     }
-    if (testMatches(valueTest, propValue) === false) {
+    if (valueTest(propValue) === false) {
       continue
     }
     return element
@@ -120,18 +168,13 @@ const proceduralOperatorMatchesProperty = (instruction, element) => {
 
 // Implementation of ":matches-attr" rule
 const proceduralOperatorMatchesAttr = (instruction, element) => {
-  const tests = _parseKeyValueMatchArg(instruction)
-  if (tests === undefined) {
-    return null
-  }
-  const [attrTest, valueTest] = tests
-
+  const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction)
   for (const attrName of element.getAttributeNames()) {
-    if (testMatches(attrTest, attrName) === false) {
+    if (keyTest(attrName) === false) {
       continue
     }
     const attrValue = element.getAttribute(attrName)
-    if (testMatches(valueTest, attrValue) === false) {
+    if (valueTest(attrValue) === false) {
       continue
     }
     return element
@@ -143,7 +186,7 @@ const proceduralOperatorMatchesAttr = (instruction, element) => {
 const proceduralOperatorMatchesCSS = (beforeOrAfter, cssInstruction, element) => {
   const cssInstructionBits = cssInstruction.split(': ')
   const [cssKey, cssVal] = cssInstructionBits
-  console.log(beforeOrAfter, cssInstruction, element)
+  const valueTest = _extractValueMatchRuleFromStr(cssVal)
   const elmStyle = W.getComputedStyle(element, beforeOrAfter)
   const styleValue = elmStyle[cssKey]
   if (styleValue === undefined) {
@@ -151,8 +194,7 @@ const proceduralOperatorMatchesCSS = (beforeOrAfter, cssInstruction, element) =>
     // trivially doesn't match then.
     return null
   }
-
-  return testMatches(cssVal, styleValue, true) ? element : null
+  return valueTest(styleValue, true) ? element : null
 }
 
 // Implementation of "upward" rule
@@ -183,28 +225,16 @@ const proceduralOperatorUpward = (instruction, element) => {
   return _upwardSelector(instruction, element)
 }
 
-// Implementation of ":nth-ancestor" rule
-const proceduralOperatorNthAncestor = (instruction, element) => {
-  let ancestorsLeft = +instruction
-  let curNode = element
-  while (curNode != null && ancestorsLeft > 0) {
-    ancestorsLeft -= 1
-    curNode = curNode.parentNode
-  }
-  return curNode
-}
-
 const ruleTypeToFuncMap = {
   'css-selector': proceduralOperatorCssSelector,
-  contains: proceduralOperatorContains,
   'has-text': proceduralOperatorHasText,
-  'matches-property': proceduralOperatorMatchesProperty,
   'matches-attr': proceduralOperatorMatchesAttr,
   'matches-css': proceduralOperatorMatchesCSS.bind(undefined, null),
-  'matches-css-before': proceduralOperatorMatchesCSS.bind(undefined, '::before'),
   'matches-css-after': proceduralOperatorMatchesCSS.bind(undefined, '::after'),
-  upward: proceduralOperatorUpward,
-  'nth-ancestor': proceduralOperatorNthAncestor
+  'matches-css-before': proceduralOperatorMatchesCSS.bind(undefined, '::before'),
+  'matches-property': proceduralOperatorMatchesProperty,
+  contains: proceduralOperatorHasText,
+  upward: proceduralOperatorUpward
 }
 
 const buildProceduralFilter = (ruleList) => {
