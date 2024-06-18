@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section id="child-check">
+      <h2><code>:children</code> check by having a specific child element</h2>
+      <div id="case-one" data-expect="hidden">
+        Case one: should be hidden
+        <div class="child-1">
+          Child 1
+          <div class="child-2">
+            Child 2
+            <div class="child-3">
+              Child 3
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="case-two" data-expect="visible">
+        Case two: should not be hidden (does not have a child-3 element)
+        <div class="child-1">
+          Child 1
+          <div class="child-2">
+            Child 2
+            <div class="child-3-no">
+              Child 3
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="upward-check">
+      <h2><code>:children</code> check based on having a parent with certain text</h2>
+      <div id="case-three" data-expect="hidden">
+        This should be hidden
+        <div class="child-1">
+          Child 1
+          <div class="child-2">
+            Child 2
+            <code>yes needle</code>
+          </div>
+        </div>
+      </div>
+
+      <div id="case-four" data-expect="visible">
+        This should be visible
+        <div class="child-1">
+          Child 1
+          <div class="child-2">
+            Child 2
+            <code>no needle</code>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "#child-check > div"
+          },
+          {
+            type: "children",
+            arg: [
+              {
+                type: "css-selector",
+                arg: "div.child-3"
+              }
+            ]
+          }
+        ])
+
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "#upward-check > div"
+          },
+          {
+            type: "children",
+            arg: [
+              {
+                type: "css-selector",
+                arg: "code"
+              },
+              {
+                type: "has-text",
+                arg: "yes needle"
+              }
+            ]
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

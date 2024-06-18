@@ -9,27 +9,27 @@
   <body>
     <section id="string-cases">
       <h2>String cases for <code>:contains</code></h2>
-      <div expect="hidden">
+      <div data-expect="hidden">
         <p>Please hide me.</p>
       </div>
       <div>
-        <p expect="visible">Fake out hide.</p>
+        <p data-expect="visible">Fake out hide.</p>
       </div>
       <div>
-        <p expect="visible">And do not hide this element.</p>
+        <p data-expect="visible">And do not hide this element.</p>
       </div>
     </section>
 
     <section id="regex-cases">
       <h2>RegEx cases for <code>:contains</code></h2>
-      <div expect="hidden">
+      <div data-expect="hidden">
         <p>This should be hidden.</p>
       </div>
       <div>
-        <p expect="visible">This should be hidden (but not really).</p>
+        <p data-expect="visible">This should be hidden (but not really).</p>
       </div>
       <div>
-        <p expect="visible">This should not be hidden.</p>
+        <p data-expect="visible">This should not be hidden.</p>
       </div>
     </section>
     <script>

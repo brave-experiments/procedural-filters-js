@@ -8,7 +8,7 @@
   </head>
   <body>
     <section>
-      <div class="barf" expect="hidden">
+      <div class="barf" data-expect="hidden">
         This should be hidden, bc its a sibling of a container with "A d" in it
       </div>
       <div class="items">
@@ -26,7 +26,7 @@
       <div class="items">
         Sponsored
       </div>
-      <div class="barf" expect="visible">
+      <div class="barf" data-expect="visible">
         This should NOT be hidden, bc ".container" is not the next sibling of ".item"
       </div>
     </section>

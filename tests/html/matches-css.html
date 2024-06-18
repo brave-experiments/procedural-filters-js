@@ -18,21 +18,21 @@
     <section>
       <h2><code>:matches-css</code></h2>
       <div>
-        <p expect="visible">This should not be hidden</p>
-        <p class="needle" expect="hidden">This should be hidden</p>
+        <p data-expect="visible">This should not be hidden</p>
+        <p class="needle" data-expect="hidden">This should be hidden</p>
       </div>
-      <p expect="visible">This should not be hidden</p>
+      <p data-expect="visible">This should not be hidden</p>
       <p class="needle" epxect="hidden">This should be hidden</p>
     </section>
 
     <section>
       <h2><code>:matches-css-before</code></h2>
       <div>
-        <p class="other-needle" expect="hidden">This should be hidden</p>
+        <p class="other-needle" data-expect="hidden">This should be hidden</p>
       </div>
       <div>
         <span class="other-needle"></span>
-        <span expect="visible">This should not be hidden</span>
+        <span data-expect="visible">This should not be hidden</span>
       </div>
     </section>
     <script>

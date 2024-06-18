@@ -5,12 +5,19 @@ const configLib = require('./config.js')
 
 const baseDir = './tests/html'
 
+console.log(`serving tests from http://${configLib.host}:${configLib.port}/`)
+
 httpLib.createServer((req, res) => {
-  const contents = fsLib.readFileSync(baseDir + req.url)
+  let contents
   if (req.url.endsWith('.js')) {
+    contents = fsLib.readFileSync(baseDir + req.url)
     res.writeHead(200, { 'Content-Type': 'application/javascript' })
-  } else {
+  } else if (req.url.endsWith('.html')) {
+    contents = fsLib.readFileSync(baseDir + req.url)
     res.writeHead(200, { 'Content-Type': 'text/html' })
+  } else {
+    contents = ''
+    res.writeHead(404)
   }
   res.write(contents)
   res.end()

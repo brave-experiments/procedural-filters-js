@@ -10,26 +10,26 @@
     <div class="items">
       <p>
         This first paragraph has "Sponsored" in it, so
-        <span class="container" expect="hidden">this text should be hidden</span>...
+        <span class="container" data-expect="hidden">this text should be hidden</span>...
       </p>
     </div>
     <div class="items">
-      <p expect="visible">
+      <p data-expect="visible">
         This second paragraph does not have "S p o n s o r e d" in it, so
-        <span class="container" expect="visible">this text should NOT hidden</span>.
+        <span class="container" data-expect="visible">this text should NOT hidden</span>.
       </p>
     </div>
     <div class="items">
-      <p expect="visible">
+      <p data-expect="visible">
         This third paragraph has "Sponsored" in it, but the next span
         does not have the "container" class, so
-        <span class="no-container" expect="visible">this text should NOT be hidden</span>.
+        <span class="no-container" data-expect="visible">this text should NOT be hidden</span>.
       </p>
     </div>
     <div>
       <p>
         This fourth paragraph has "Sponsored" in it, but is not in an "items"
-        element, so this <span class="container" expect="visible">this text should NOT hidden</span>.
+        element, so this <span class="container" data-expect="visible">this text should NOT hidden</span>.
       </p>
     </div>
     <script>

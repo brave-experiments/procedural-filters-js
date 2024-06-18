@@ -7,17 +7,17 @@
     <title>Procedural Filter Tests</title>
   </head>
   <body>
-    <p class="items" expect="visible">
+    <p class="items" data-expect="visible">
       This should be visible bc the word "S p o n s o r e d" does not appear
     </p>
-    <p class="items" expect="hidden">
+    <p class="items" data-expect="hidden">
       This should be hidden because of the word "Sponsored"
     </p>
-    <p expect="visible">
+    <p data-expect="visible">
       This should be visible bc it doesn't have the class "items" despite
       saying "Sponsored"
     </p>
-    <p expect="visible">
+    <p data-expect="visible">
       This should be visible bc it doesn't have the class "items" nor
       the text sponsored
     </p>

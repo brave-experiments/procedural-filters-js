@@ -9,32 +9,32 @@
   <body>
     <section>
       <h2>String cases for <code>:matches-attr</code></h2>
-      <div test-attr="test-value" expect="hidden">
+      <div test-attr="test-value" data-expect="hidden">
         This should be hidden.
       </div>
-      <div diff-attr="test-value" expect="visible">
+      <div diff-attr="test-value" data-expect="visible">
         This should not be hidden.
       </div>
-      <div test-attr="diff-value" expect="visible">
+      <div test-attr="diff-value" data-expect="visible">
         This should not be hidden.
       </div>
-      <div diff-attr="diff-value" expect="visible">
+      <div diff-attr="diff-value" data-expect="visible">
         This should not be hidden.
       </div>
     </section>
 
     <section>
       <h2>Regex cases for <code>:matches-attr</code></h2>
-      <div test-yes-attr="test-yes-value" expect="hidden">
+      <div test-yes-attr="test-yes-value" data-expect="hidden">
         This should be hidden.
       </div>
-      <div test-yes-attr="test-no-value" expect="visible">
+      <div test-yes-attr="test-no-value" data-expect="visible">
         This should not be hidden.
       </div>
-      <div test-no-attr="test-yes-value" expect="visible">
+      <div test-no-attr="test-yes-value" data-expect="visible">
         This should not be hidden.
       </div>
-      <div test-no-attr="test-no-value" expect="visible">
+      <div test-no-attr="test-no-value" data-expect="visible">
         This should not be hidden.
       </div>
     </section>

@@ -225,6 +225,12 @@ const proceduralOperatorUpward = (instruction, element) => {
   return _upwardSelector(instruction, element)
 }
 
+const proceduralOperatorChildren = (ruleList, element) => {
+  const childRuleList = buildProceduralFilter(ruleList)
+  const matches = getNodesMatchingFilter(childRuleList, [element])
+  return matches.length === 0 ? null : element
+}
+
 const ruleTypeToFuncMap = {
   'css-selector': proceduralOperatorCssSelector,
   'has-text': proceduralOperatorHasText,
@@ -233,6 +239,7 @@ const ruleTypeToFuncMap = {
   'matches-css-after': proceduralOperatorMatchesCSS.bind(undefined, '::after'),
   'matches-css-before': proceduralOperatorMatchesCSS.bind(undefined, '::before'),
   'matches-property': proceduralOperatorMatchesProperty,
+  children: proceduralOperatorChildren,
   contains: proceduralOperatorHasText,
   upward: proceduralOperatorUpward
 }

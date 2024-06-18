@@ -11,11 +11,11 @@ for (const testCase of testCases) {
     await page.goto(testCase)
     test.setTimeout(120000)
 
-    for (const aTarget of await page.locator('[expect=visible]').all()) {
+    for (const aTarget of await page.locator('[data-expect=visible]').all()) {
       await expect(aTarget).toBeVisible()
     }
 
-    for (const aTarget of await page.locator('[expect=hidden]').all()) {
+    for (const aTarget of await page.locator('[data-expect=hidden]').all()) {
       await expect(aTarget).toBeHidden()
     }
   })
