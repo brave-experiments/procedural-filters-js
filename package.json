@@ -11,11 +11,10 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "standard": "^17.1.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@playwright/test": "^1.44.1",
-    "@types/node": "^20.14.4"
+    "@types/node": "^20.14.4",
+    "standard": "^17.1.0"
   }
 }
