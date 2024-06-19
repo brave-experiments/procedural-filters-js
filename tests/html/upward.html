@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section id="string-tests">
+      <h2>String cases for <code>:upward</code></h2>
+      <div class="needle" data-expect="hidden">
+        This should be hidden
+        <div>
+          <em class="target"></em>
+        </div>
+      </div>
+      <span class="needle" data-expect="visible">
+        This should not be hidden.
+        <div>
+          <em class="target"></em>
+        </div>
+      </span>
+      <div data-expect="visible">
+        This should not be hidden.
+        <div>
+          <em class="target"></em>
+        </div>
+      </div>
+    </section>
+
+    <section id="int-tests">
+      <h2>Integer cases for <code>:upward</code></h2>
+      <div test-needle="true" data-expect="hidden">
+        This should be hidden
+        <div>
+          <em class="target"></em>
+        </div>
+      </div>
+      <span class="needle" data-expect="visible">
+        This should not be hidden.
+        <div>
+          <em class="target"></em>
+        </div>
+      </span>
+      <div data-expect="visible">
+        This should not be hidden.
+        <div>
+          <em class="target"></em>
+        </div>
+      </div>
+    </section>
+
+    <section id="child-filters-tests">
+      <h2>Child filter cases for <code>:upward</code></h2>
+      <div test-needle="true" class="needle" data-expect="hidden">
+        This should be hidden
+        <div>
+          <em class="target"></em>
+        </div>
+      </div>
+      <span test-needle="false" class="needle" data-expect="visible">
+        This should not be hidden.
+        <div>
+          <em class="target"></em>
+        </div>
+      </span>
+      <div test-needle="false" data-expect="visible">
+        This should not be hidden.
+        <div>
+          <em class="target"></em>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "#string-tests em.target"
+          },
+          {
+            type: "upward",
+            arg: "div.needle"
+          }
+        ])
+
+        mod.run([
+        {
+            type: "css-selector",
+            arg: "#int-tests em.target"
+          },
+          {
+            type: "upward",
+            arg: "2"
+          },
+          {
+            type: "matches-attr",
+            arg: 'test-needle="true"'
+          }
+        ])
+
+        mod.run([
+        {
+            type: "css-selector",
+            arg: "#child-filters-tests em.target"
+          },
+          {
+            type: "upward",
+            arg: [
+              {
+                type: "matches-attr",
+                arg: 'test-needle="true"'
+              }
+            ]
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

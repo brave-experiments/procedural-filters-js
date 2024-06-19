@@ -1,5 +1,10 @@
 const W = window
 
+const _isDocument = (element) => {
+  const documentProto = W.HTMLDocument.prototype
+  return W.Object.getPrototypeOf(element) === documentProto
+}
+
 const _compileRegEx = (regexText) => {
   const regexParts = regexText.split('/')
   const regexPattern = regexParts[1]
@@ -144,11 +149,45 @@ const proceduralOperatorCssSelector = (selector, element) => {
   return Array.from(element.querySelectorAll(':scope ' + trimmedSelector))
 }
 
+const _hasSelectorCase = (selector, element) => {
+  return element.matches(selector) ? element : null
+}
+
+const _hasChildFiltersCase = (childFilters, element) => {
+  const matches = _elementsMatchingRuleList(childFilters, element)
+  return matches.length === 0 ? null : element
+}
+
+const proceduralOperatorHas = (instruction, element) => {
+  if (W.Array.isArray(instruction)) {
+    return _hasChildFiltersCase(instruction, element)
+  } else {
+    return _hasSelectorCase(instruction, element)
+  }
+}
+
 // Implementation of ":has-text" rule
 const proceduralOperatorHasText = (instruction, element) => {
   const text = element.innerText
   const valueTest = _extractValueMatchRuleFromStr(instruction)
   return valueTest(text) ? element : null
+}
+
+const _notSelectorCase = (selector, element) => {
+  return element.matches(selector) ? null : selector
+}
+
+const _notChildFiltersCase = (childFilters, element) => {
+  const matches = _elementsMatchingRuleList(childFilters, element)
+  return matches.length === 0 ? element : null
+}
+
+const proceduralOperatorNot = (instruction, element) => {
+  if (Array.isArray(instruction)) {
+    return _notChildFiltersCase(instruction, element)
+  } else {
+    return _notSelectorCase(instruction, element)
+  }
 }
 
 // Implementation of ":matches-property" rule
@@ -197,51 +236,68 @@ const proceduralOperatorMatchesCSS = (beforeOrAfter, cssInstruction, element) =>
   return valueTest(styleValue, true) ? element : null
 }
 
-// Implementation of "upward" rule
-const proceduralOperatorUpward = (instruction, element) => {
-  const _upwardInt = (intNeedle, element) => {
-    let currentElement = element
-    while (currentElement !== null && intNeedle > 0) {
-      currentElement = currentElement.parentNode
-      intNeedle -= 1
-    }
-    return currentElement
+const _upwardIntCase = (intNeedle, element) => {
+  let currentElement = element
+  while (currentElement !== null && intNeedle > 0) {
+    currentElement = currentElement.parentNode
+    intNeedle -= 1
   }
-
-  const _upwardSelector = (selector, element) => {
-    let currentElement = element
-    while (currentElement !== null) {
-      if (currentElement.matches(selector)) {
-        return currentElement
-      }
-      currentElement = currentElement.parentNode
-    }
-    return null
-  }
-
-  if (W.Number.isInteger(+instruction)) {
-    return _upwardInt(instruction, element)
-  }
-  return _upwardSelector(instruction, element)
+  return currentElement
 }
 
-const proceduralOperatorChildren = (ruleList, element) => {
-  const childRuleList = buildProceduralFilter(ruleList)
-  const matches = getNodesMatchingFilter(childRuleList, [element])
-  return matches.length === 0 ? null : element
+const _upwardChildFiltersCase = (childFilters, element) => {
+  const childRuleList = buildProceduralFilter(childFilters)
+  let currentElement = element
+  while (currentElement !== null && _isDocument(currentElement) === false) {
+    const matches = getNodesMatchingFilter(childRuleList, [currentElement])
+    if (matches.length !== 0) {
+      return currentElement
+    }
+    currentElement = currentElement.parentNode
+  }
+  return null
+}
+
+const _upwardSelectorCase = (selector, element) => {
+  let currentElement = element
+  while (currentElement !== null && _isDocument(currentElement) === false) {
+    if (currentElement.matches(selector)) {
+      return currentElement
+    }
+    currentElement = currentElement.parentNode
+  }
+  return null
+}
+
+// Implementation of "upward" rule
+const proceduralOperatorUpward = (instruction, element) => {
+  if (W.Number.isInteger(+instruction)) {
+    return _upwardIntCase(instruction, element)
+  } else if (W.Array.isArray(instruction)) {
+    return _upwardChildFiltersCase(instruction, element)
+  } else {
+    // Assume selector case
+    return _upwardSelectorCase(instruction, element)
+  }
 }
 
 const ruleTypeToFuncMap = {
+  contains: proceduralOperatorHasText,
   'css-selector': proceduralOperatorCssSelector,
+  has: proceduralOperatorHas,
   'has-text': proceduralOperatorHasText,
   'matches-attr': proceduralOperatorMatchesAttr,
   'matches-css': proceduralOperatorMatchesCSS.bind(undefined, null),
   'matches-css-after': proceduralOperatorMatchesCSS.bind(undefined, '::after'),
   'matches-css-before': proceduralOperatorMatchesCSS.bind(undefined, '::before'),
   'matches-property': proceduralOperatorMatchesProperty,
-  children: proceduralOperatorChildren,
-  contains: proceduralOperatorHasText,
+  not: proceduralOperatorNot,
   upward: proceduralOperatorUpward
+}
+
+const _elementsMatchingRuleList = (ruleList, element) => {
+  const childRuleList = buildProceduralFilter(ruleList)
+  return getNodesMatchingFilter(childRuleList, [element])
 }
 
 const buildProceduralFilter = (ruleList) => {

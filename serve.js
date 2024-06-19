@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 const httpLib = require('node:http')
 const fsLib = require('node:fs')
 

@@ -68,7 +68,7 @@
             arg: "#child-check > div"
           },
           {
-            type: "children",
+            type: "has",
             arg: [
               {
                 type: "css-selector",
@@ -84,15 +84,11 @@
             arg: "#upward-check > div"
           },
           {
-            type: "children",
+            type: "has",
             arg: [
               {
-                type: "css-selector",
-                arg: "code"
-              },
-              {
                 type: "has-text",
-                arg: "yes needle"
+                arg: "This should be hidden"
               }
             ]
           }
