@@ -274,10 +274,10 @@ const _upwardIntCase = (intNeedle, element) => {
 }
 
 const _upwardChildFiltersCase = (childFilters, element) => {
-  const childRuleList = buildProceduralFilter(childFilters)
+  const childRuleList = buildFilter(childFilters)
   let currentElement = element
   while (currentElement !== null && _isDocument(currentElement) === false) {
-    const matches = getNodesMatchingFilter(childRuleList, [currentElement])
+    const matches = applyFilter(childRuleList, [currentElement])
     if (matches.length !== 0) {
       return currentElement
     }
@@ -340,11 +340,11 @@ const ruleTypeToFuncMap = {
 }
 
 const _elementsMatchingRuleList = (ruleList, element) => {
-  const childRuleList = buildProceduralFilter(ruleList)
-  return getNodesMatchingFilter(childRuleList, [element])
+  const childRuleList = buildFilter(ruleList)
+  return applyFilter(childRuleList, [element])
 }
 
-const buildProceduralFilter = (ruleList) => {
+export const buildFilter = (ruleList) => {
   const operatorList = []
   for (const rule of ruleList) {
     const anOperatorFunc = ruleTypeToFuncMap[rule.type]
@@ -372,7 +372,7 @@ const fastPathOperatorTypes = [
   'matches-path'
 ]
 
-const getNodesMatchingFilter = (filter, initNodes = undefined) => {
+export const applyFilter = (filter, initNodes = undefined) => {
   let nodesToConsider = []
   let index = 0
 
@@ -436,51 +436,4 @@ const getNodesMatchingFilter = (filter, initNodes = undefined) => {
   }
 
   return nodesToConsider
-}
-
-const hideOnlyCurMatchingNodes = (nodesToHideSet, prevNodesMap) => {
-  // First, see if there are any nodes we'd hidden previously
-  // that no longer match the procedural filters. If there are,
-  // then restore their style to what it was before we hid them,
-  for (const aNode of prevNodesMap.keys()) {
-    if (nodesToHideSet.has(aNode) === false) {
-      aNode.style.display = prevNodesMap[aNode]
-    }
-  }
-
-  const currentNodesMap = new Map()
-  // Now, hide any currently matching nodes that are not already hidden.
-  for (const aNode of nodesToHideSet) {
-    // Handle the case where a previously matching node is still matching.
-    // In this case, we just continue to copy over the node's pre-being-hidden
-    // inline style (if any), and make sure the node is still hidden.
-    if (prevNodesMap.has(aNode) === true) {
-      currentNodesMap[aNode] = prevNodesMap[aNode]
-    } else {
-      currentNodesMap[aNode] = aNode.style.display
-    }
-    aNode.style.display = 'none'
-  }
-  return currentNodesMap
-}
-
-export const run = (ruleList, pollingInterval = 0) => {
-  const filter = buildProceduralFilter(ruleList)
-
-  let prevNodes = new Map()
-  let matchingNodes = new Set(getNodesMatchingFilter(filter))
-  prevNodes = hideOnlyCurMatchingNodes(matchingNodes, prevNodes)
-
-  if (pollingInterval === 0) {
-    return
-  }
-
-  const intervalId = W.setInterval(() => {
-    matchingNodes = getNodesMatchingFilter(filter)
-    prevNodes = hideOnlyCurMatchingNodes(matchingNodes, prevNodes)
-  }, pollingInterval)
-
-  return () => {
-    W.clearInterval(intervalId)
-  }
 }

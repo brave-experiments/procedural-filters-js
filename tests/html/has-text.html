@@ -16,7 +16,7 @@
     <div class="items" style="display: none"></div>
     <div class="container" data-expect="visible">This should NOT hidden bc the previous sibling does not say "Sponsored", even though this says "Ad"</div>
     <script>
-      import("/procedural-filters.js").then(async mod => {
+      import("/tests.js").then(async mod => {
         mod.run([
           {
             type: "css-selector",
