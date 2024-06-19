@@ -103,7 +103,7 @@ const _parseKeyValueMatchRules = (argStr) => {
   return [keyMatchRule, valueMatchRule]
 }
 
-// Implementation of "css-selector" rule
+// Implementation of ":css-selector" rule
 const proceduralOperatorCssSelector = (selector, element) => {
   const _stripOperator = (operator, selector) => {
     if (selector[0] !== operator) {
@@ -158,6 +158,7 @@ const _hasChildFiltersCase = (childFilters, element) => {
   return matches.length === 0 ? null : element
 }
 
+// Implementation of ":has" rule
 const proceduralOperatorHas = (instruction, element) => {
   if (W.Array.isArray(instruction)) {
     return _hasChildFiltersCase(instruction, element)
@@ -182,6 +183,7 @@ const _notChildFiltersCase = (childFilters, element) => {
   return matches.length === 0 ? element : null
 }
 
+// Implementation of ":not" rule
 const proceduralOperatorNot = (instruction, element) => {
   if (Array.isArray(instruction)) {
     return _notChildFiltersCase(instruction, element)
@@ -209,7 +211,7 @@ const proceduralOperatorMatchesProperty = (instruction, element) => {
 const proceduralOperatorMinTextLength = (instruction, element) => {
   const minLength = +instruction
   if (minLength === W.NaN) {
-    throw new Error(`Invalid arg for min-text-length: ${instruction}`)
+    throw new Error(`min-text-length: Invalid arg, ${instruction}`)
   }
   return element.innerText.trim().length >= minLength ? element : null
 }
@@ -260,6 +262,9 @@ const proceduralOperatorMatchesPath = (instruction, element) => {
 }
 
 const _upwardIntCase = (intNeedle, element) => {
+  if (intNeedle < 1 || intNeedle >= 256) {
+    throw new Error(`upward: invalid arg, ${intNeedle}`)
+  }
   let currentElement = element
   while (currentElement !== null && intNeedle > 0) {
     currentElement = currentElement.parentNode
@@ -315,10 +320,6 @@ const proceduralOperatorXPath = (instruction, element) => {
   }
   return nodes
 }
-
-// Not yet implemented
-//  - other
-//  - watch-attr
 
 const ruleTypeToFuncMap = {
   contains: proceduralOperatorHasText,
