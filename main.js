@@ -205,6 +205,15 @@ const proceduralOperatorMatchesProperty = (instruction, element) => {
   return null
 }
 
+// Implementation of ":min-text-length" rule
+const proceduralOperatorMinTextLength = (instruction, element) => {
+  const minLength = +instruction
+  if (minLength === W.NaN) {
+    throw new Error(`Invalid arg for min-text-length: ${instruction}`)
+  }
+  return element.innerText.trim().length >= minLength ? element : null
+}
+
 // Implementation of ":matches-attr" rule
 const proceduralOperatorMatchesAttr = (instruction, element) => {
   const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction)
@@ -234,6 +243,20 @@ const proceduralOperatorMatchesCSS = (beforeOrAfter, cssInstruction, element) =>
     return null
   }
   return valueTest(styleValue, true) ? element : null
+}
+
+// Implementation of ":matches-media" rule
+const proceduralOperatorMatchesMedia = (instruction, element) => {
+  return W.matchMedia(instruction).matches === true
+    ? element
+    : null
+}
+
+// Implementation of ":matches-path" rule
+const proceduralOperatorMatchesPath = (instruction, element) => {
+  const pathAndQuery = W.location.pathname + W.location.search
+  const matchRule = _extractValueMatchRuleFromStr(instruction)
+  return matchRule(pathAndQuery) ? element : null
 }
 
 const _upwardIntCase = (intNeedle, element) => {
@@ -269,7 +292,7 @@ const _upwardSelectorCase = (selector, element) => {
   return null
 }
 
-// Implementation of "upward" rule
+// Implementation of ":upward" rule
 const proceduralOperatorUpward = (instruction, element) => {
   if (W.Number.isInteger(+instruction)) {
     return _upwardIntCase(instruction, element)
@@ -281,6 +304,22 @@ const proceduralOperatorUpward = (instruction, element) => {
   }
 }
 
+// Implementation of ":xpath" rule
+const proceduralOperatorXPath = (instruction, element) => {
+  const result = W.document.evaluate(instruction, element, null,
+    W.XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null)
+  const nodes = []
+  let currentNode
+  while ((currentNode = result.iterateNext())) {
+    nodes.push(currentNode)
+  }
+  return nodes
+}
+
+// Not yet implemented
+//  - other
+//  - watch-attr
+
 const ruleTypeToFuncMap = {
   contains: proceduralOperatorHasText,
   'css-selector': proceduralOperatorCssSelector,
@@ -290,9 +329,13 @@ const ruleTypeToFuncMap = {
   'matches-css': proceduralOperatorMatchesCSS.bind(undefined, null),
   'matches-css-after': proceduralOperatorMatchesCSS.bind(undefined, '::after'),
   'matches-css-before': proceduralOperatorMatchesCSS.bind(undefined, '::before'),
+  'matches-media': proceduralOperatorMatchesMedia,
+  'matches-path': proceduralOperatorMatchesPath,
   'matches-property': proceduralOperatorMatchesProperty,
+  'min-text-length': proceduralOperatorMinTextLength,
   not: proceduralOperatorNot,
-  upward: proceduralOperatorUpward
+  upward: proceduralOperatorUpward,
+  xpath: proceduralOperatorXPath
 }
 
 const _elementsMatchingRuleList = (ruleList, element) => {
@@ -319,24 +362,39 @@ const buildProceduralFilter = (ruleList) => {
   return operatorList
 }
 
+// List of operator types that will be either globally true or false
+// independent of the passed element. We use this list to optimize
+// applying each operator (i.e., we just check the first element, and then
+// accept or reject all elements in the consideration set accordingly).
+const fastPathOperatorTypes = [
+  'matches-media',
+  'matches-path'
+]
+
 const getNodesMatchingFilter = (filter, initNodes = undefined) => {
   let nodesToConsider = []
-  let operatorIndex = 0
+  let index = 0
 
   // A couple of special cases to consider.
   //
   // Case one: we're applying the procedural filter on a set of nodes (instead
   // of the entire document)  In this case, we already know which nodes to
   // consider, easy case.
+  const firstOperator = filter[0]
+  const firstOperatorType = firstOperator.type
+  const firstArg = firstOperator.args[0]
+
   if (initNodes !== undefined) {
     nodesToConsider = W.Array.from(initNodes)
-  } else if (filter[0].type === 'css-selector') {
+  } else if (firstOperatorType === 'css-selector') {
     // Case two: we're considering the entire document, and the first operator
     // is a 'css-selector'. Here, we just special case using querySelectorAll
     // instead of starting with the full set of possible nodes.
-    const initialSelector = filter[0].args[0]
-    nodesToConsider = W.Array.from(W.document.querySelectorAll(initialSelector))
-    operatorIndex += 1
+    nodesToConsider = W.Array.from(W.document.querySelectorAll(firstArg))
+    index += 1
+  } else if (firstOperatorType === 'xpath') {
+    nodesToConsider = proceduralOperatorXPath(firstArg, W.document)
+    index += 1
   } else {
     // Case three: we gotta apply the first operator to the entire document.
     // Yuck but un-avoidable.
@@ -344,8 +402,24 @@ const getNodesMatchingFilter = (filter, initNodes = undefined) => {
   }
 
   const numOperators = filter.length
-  for (operatorIndex; operatorIndex < numOperators; ++operatorIndex) {
-    const operatorFunc = filter[operatorIndex].func
+  for (index; nodesToConsider.length > 0 && index < numOperators; ++index) {
+    const operator = filter[index]
+    const operatorFunc = operator.func
+    const operatorType = operator.type
+
+    // Note that we special case the :matches-path case here, since if
+    // if it passes for one element, then it will pass for all elements.
+    if (fastPathOperatorTypes.includes(operatorType)) {
+      const firstNode = nodesToConsider[0]
+      if (operatorFunc(firstNode) === null) {
+        nodesToConsider = []
+      }
+      // Note that unless we've taken the if-true branch above, then
+      // the nodesToConsider array will still have all the elements
+      // it started with.
+      break
+    }
+
     let newNodesToConsider = []
     for (const aNode of nodesToConsider) {
       const result = operatorFunc(aNode)

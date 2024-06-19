@@ -17,7 +17,6 @@
     <div class="container" data-expect="visible">This should NOT hidden bc the previous sibling does not say "Sponsored", even though this says "Ad"</div>
     <script>
       import("/procedural-filters.js").then(async mod => {
-        // .items:has-text(Sponsored) + .container:has-text(Ad)
         mod.run([
           {
             type: "css-selector",

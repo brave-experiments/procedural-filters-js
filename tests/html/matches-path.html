@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section id="positive-string-case">
+      <h2><code>:matches-path</code> positive string case</h2>
+      <p class="odd" data-expect="hidden">Should be hidden</p>
+      <p class="even" data-expect="visible">Should not be hidden</p>
+      <p data-expect="visible">Should not be hidden</p>
+    </section>
+
+    <section id="positive-regex-case">
+      <h2><code>:matches-path</code> positive regex case</h2>
+      <p class="odd" data-expect="hidden">Should be hidden</p>
+      <p class="even" data-expect="visible">Should not be hidden</p>
+      <p data-expect="visible">Should not be hidden</p>
+    </section>
+
+    <section id="negative-case">
+      <h2><code>:matches-path</code>: negative case</h2>
+      <p class="odd" data-expect="visible">Should not be hidden</p>
+      <p class="even" data-expect="visible">Should not be hidden</p>
+      <p data-expect="visible">Should not be hidden</p>
+    </section>
+
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "section#positive-string-case p.odd"
+          },
+          {
+            type: 'matches-path',
+            arg: 'matches-path.html'
+          }
+        ])
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "section#positive-regex-case p.odd"
+          },
+          {
+            type: 'matches-path',
+            arg: '/m[ab]tches\-[a-z]{4}/'
+          }
+        ])
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "section#negative-case"
+          },
+          {
+            type: 'matches-path',
+            arg: '/some-other-page.html'
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

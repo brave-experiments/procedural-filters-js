@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <p data-expect="hidden">
+      This should be hidden bc it contains 50 characters
+    </p>
+    <p data-expect="visible">
+      This should not hidden, 37 characters
+    </p>
+    <script>
+      import("./procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "p"
+          },
+          {
+            type: "min-text-length",
+            arg: "50"
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section id="no-subject-case">
+      <h2><code>:xpath</code> no subject case</h2>
+      <p class="odd" data-expect="hidden">Should be hidden</p>
+      <p class="even" data-expect="visible">Should not be hidden</p>
+      <p data-expect="visible">Should not be hidden</p>
+      <p class="even" data-expect="visible">Should not be hidden</p>
+    </section>
+
+    <section id="with-subject-case">
+      <h2><code>:xpath</code>: with subject case</h2>
+      <p class="odd" data-expect="visible">Should not be hidden</p>
+      <p class="even" data-expect="hidden">Should be hidden</p>
+      <p class="odd" data-expect="visible">Should not be hidden</p>
+      <p data-expect="visible">Should not be hidden</p>
+    </section>
+
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "xpath",
+            arg: "//section[@id='no-subject-case']/p[@class='odd']"
+          }
+        ])
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "section#with-subject-case"
+          },
+          {
+            type: "xpath",
+            arg: "p[@class='even']"
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>

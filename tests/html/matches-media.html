@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section id="matches-media-positive-case">
+      <h2><code>:matches-media</code> positive case</h2>
+      <p class="odd" data-expect="hidden">Should be hidden</p>
+      <p class="even" data-expect="visible">Should not be hidden</p>
+      <p data-expect="visible">Should not be hidden</p>
+    </section>
+
+    <section id="matches-media-negative-case">
+      <h2><code>:matches-media</code> negative case</h2>
+      <p class="odd" data-expect="visible">Should not be hidden</p>
+      <p class="even" data-expect="visible">Should not be hidden</p>
+      <p data-expect="visible">Should not be hidden</p>
+    </section>
+
+    <script>
+      import("/procedural-filters.js").then(async mod => {
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "section#matches-media-positive-case p.odd"
+          },
+          {
+            type: 'matches-media',
+            arg: '(min-width: 10px)'
+          }
+        ])
+        mod.run([
+          {
+            type: "css-selector",
+            arg: "section#matches-media-negative-case p.odd"
+          },
+          {
+            type: 'matches-media',
+            arg: '(print)'
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>
