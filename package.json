@@ -13,8 +13,8 @@
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-    "@playwright/test": "^1.44.1",
-    "@types/node": "^20.14.4",
-    "standard": "^17.1.0"
+    "@playwright/test": "1.45.0",
+    "@types/node": "20.14.9",
+    "standard": "17.1.0"
   }
 }
