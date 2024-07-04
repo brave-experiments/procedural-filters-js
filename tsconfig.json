@@ -1,20 +1,22 @@
 {
   "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "target": "es2020",
-    "outDir": "./out",
     "declaration": true,
     "declarationDir": "./types",
-    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "lib": [
       "es2016",
       "dom"
-    ]
+    ],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "outDir": "./out",
+    "strictNullChecks": true,
+    "target": "es2019"
   },
   "include": [
     "./src/**/*.ts"
-  ],
-  "forceConsistentCasingInFileNames": true,
-  "noImplicitReturns": true,
-  "strictNullChecks": true
+  ]
 }

@@ -423,7 +423,7 @@ export const buildFilter = (ruleList: Rule[]): Filter => {
 // independent of the passed element. We use this list to optimize
 // applying each operator (i.e., we just check the first element, and then
 // accept or reject all elements in the consideration set accordingly).
-const fastPathOperatorTypes = [
+const fastPathOperatorTypes: OperatorType[] = [
   'matches-media',
   'matches-path',
 ]
