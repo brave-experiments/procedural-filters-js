@@ -1,21 +1,21 @@
 #! /usr/bin/env node
 
-const httpLib = require('node:http')
-const fsLib = require('node:fs')
+import { createServer } from 'node:http'
+import { readFileSync } from 'node:fs'
 
-const configLib = require('./config.js')
+import configLib from './config.js'
 
 const baseDir = './tests/html'
 
 console.log(`serving tests from http://${configLib.host}:${configLib.port}/`)
 
-httpLib.createServer((req, res) => {
+createServer((req, res) => {
   let contents
   if (req.url.endsWith('.js')) {
-    contents = fsLib.readFileSync(baseDir + req.url)
+    contents = readFileSync(baseDir + req.url)
     res.writeHead(200, { 'Content-Type': 'application/javascript' })
   } else if (req.url.endsWith('.html')) {
-    contents = fsLib.readFileSync(baseDir + req.url)
+    contents = readFileSync(baseDir + req.url)
     res.writeHead(200, { 'Content-Type': 'text/html' })
   } else {
     contents = ''

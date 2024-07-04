@@ -1,14 +1,14 @@
 // @ts-check
-const { defineConfig, devices } = require('@playwright/test')
+import { defineConfig, devices } from '@playwright/test'
 
-const configLib = require('./config.js')
+import configLib from './tests/serve/config.js'
 
 const serverUrl = `http://${configLib.host}:${configLib.port}`
 
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
-module.exports = defineConfig({
+export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

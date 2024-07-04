@@ -1,0 +1,20 @@
+{
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "compilerOptions": {
+    "target": "es2020",
+    "outDir": "./out",
+    "declaration": true,
+    "declarationDir": "./types",
+    "esModuleInterop": true,
+    "lib": [
+      "es2016",
+      "dom"
+    ]
+  },
+  "include": [
+    "./src/**/*.ts"
+  ],
+  "forceConsistentCasingInFileNames": true,
+  "noImplicitReturns": true,
+  "strictNullChecks": true
+}

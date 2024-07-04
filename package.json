@@ -2,19 +2,26 @@
   "name": "procedural-filters",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "main": "out/main.js",
   "scripts": {
-    "serve": "node ./serve.js",
-    "lint": "npx standard",
-    "lint:fix": "npx standard --fix",
-    "test": "npx playwright test"
+    "build": "npx tsc",
+    "serve": "node ./tests/serve/serve.js",
+    "test": "npx playwright test",
+    "lint": "npx eslint src/*.ts",
+    "lint:fix": "npx eslint --fix src/*.ts"
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {},
   "devDependencies": {
+    "@eslint/js": "^9.6.0",
     "@playwright/test": "^1.44.1",
+    "@stylistic/eslint-plugin": "^2.3.0",
+    "@tsconfig/node20": "^20.1.4",
+    "@types/eslint__js": "^8.42.3",
     "@types/node": "^20.14.4",
-    "standard": "^17.1.0"
+    "eslint": "^8.57.0",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^7.15.0"
   }
 }
