@@ -12,7 +12,9 @@
     ]
   },
   "include": [
-    "./src/declarations.d.ts",
-    "./src/**/*"
-  ]
+    "./src/**/*.ts"
+  ],
+  "forceConsistentCasingInFileNames": true,
+  "noImplicitReturns": true,
+  "strictNullChecks": true
 }
