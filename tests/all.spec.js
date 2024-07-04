@@ -1,7 +1,7 @@
 // @ts-check
-const { readdirSync } = require('node:fs')
+import { readdirSync } from 'node:fs'
 
-const { test, expect } = require('@playwright/test')
+import { test, expect } from '@playwright/test'
 
 const testCases = readdirSync('./tests/html').filter(x => x.endsWith('.html'))
 
