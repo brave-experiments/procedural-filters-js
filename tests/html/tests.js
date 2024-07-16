@@ -1,4 +1,4 @@
-import { buildFilter, applyFilter } from './procedural-filters.js'
+import { compileProceduralSelector, applyCompiledSelector } from './procedural-filters.js'
 
 const W = window
 
@@ -29,10 +29,10 @@ const hideOnlyCurMatchingNodes = (nodesToHideSet, prevNodesMap) => {
 }
 
 export const run = (ruleList, pollingInterval = 0) => {
-  const filter = buildFilter(ruleList)
+  const filter = compileProceduralSelector(ruleList)
 
   let prevNodes = new Map()
-  let matchingNodes = new W.Set(applyFilter(filter))
+  let matchingNodes = new W.Set(applyCompiledSelector(filter))
   prevNodes = hideOnlyCurMatchingNodes(matchingNodes, prevNodes)
 
   if (pollingInterval === 0) {
@@ -40,7 +40,7 @@ export const run = (ruleList, pollingInterval = 0) => {
   }
 
   const intervalId = W.setInterval(() => {
-    matchingNodes = applyFilter(filter)
+    matchingNodes = applyCompiledSelector(filter)
     prevNodes = hideOnlyCurMatchingNodes(matchingNodes, prevNodes)
   }, pollingInterval)
 
