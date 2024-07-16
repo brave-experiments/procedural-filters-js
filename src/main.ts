@@ -1,7 +1,7 @@
 const W = window
 
 const _asHTMLElement = (node: Node): HTMLElement | null => {
-  return (node instanceof HTMLElement) ? node as HTMLElement : null
+  return (node instanceof HTMLElement) ? node : null
 }
 
 const _compileRegEx = (regexText: string): RegExp => {
@@ -28,14 +28,14 @@ const _compileRegEx = (regexText: string): RegExp => {
 //
 // If `exact` is true, then the string case it tested
 // for an exact match (the regex case is not affected).
-const _testMatches = (test: string, value: string, exact = false): boolean => {
+const _testMatches = (test: string, value: string, exact: boolean = false): boolean => {
   if (test[0] === '/') {
     return value.match(_compileRegEx(test)) !== null
   }
   if (test === '') {
     return value.trim() === ''
   }
-  if (exact === true) {
+  if (exact) {
     return value === test
   }
   return value.includes(test)
@@ -95,7 +95,7 @@ const _extractValueMatchRuleFromStr = (text: string,
 // const key = ..., value = ...
 // const [keyTestFunc, valueTestFunc] = _parseKeyValueMatchArg(arg)
 //
-// if (keyTestFunc(key) === true)) {
+// if (keyTestFunc(key))) {
 //   // key matches the test condition
 // }
 const _parseKeyValueMatchRules = (arg: string): KeyValueMatchRules => {
@@ -155,7 +155,7 @@ const operatorCssSelector = (selector: CSSSelector,
   }
 
   const trimmedSelector = selector.trimStart()
-  if (trimmedSelector.startsWith('+') === true) {
+  if (trimmedSelector.startsWith('+')) {
     const subOperator = _stripOperator('+', trimmedSelector)
     if (subOperator === null) {
       return null
@@ -167,7 +167,7 @@ const operatorCssSelector = (selector: CSSSelector,
     return nextSibNode.matches(subOperator) ? nextSibNode : null
   }
 
-  if (trimmedSelector.startsWith('~') === true) {
+  if (trimmedSelector.startsWith('~')) {
     const subOperator = _stripOperator('~', trimmedSelector)
     if (subOperator === null) {
       return null
@@ -236,10 +236,10 @@ const operatorMatchesProperty = (instruction: string,
                                  element: HTMLElement): OperatorResult => {
   const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction)
   for (const [propName, propValue] of Object.entries(element)) {
-    if (keyTest(propName) === false) {
+    if (!keyTest(propName)) {
       continue
     }
-    if (valueTest(propValue) === false) {
+    if (!valueTest(propValue)) {
       continue
     }
     return element
@@ -262,11 +262,11 @@ const operatorMatchesAttr = (instruction: string,
                              element: HTMLElement): OperatorResult => {
   const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction)
   for (const attrName of element.getAttributeNames()) {
-    if (keyTest(attrName) === false) {
+    if (!keyTest(attrName)) {
       continue
     }
     const attrValue = element.getAttribute(attrName)
-    if (attrValue === null || valueTest(attrValue) === false) {
+    if (attrValue === null || !valueTest(attrValue)) {
       continue
     }
     return element
@@ -292,7 +292,7 @@ const operatorMatchesCSS = (beforeOrAfter: string | null,
 // Implementation of ":matches-media" rule
 const operatorMatchesMedia = (instruction: string,
                               element: HTMLElement): OperatorResult => {
-  return W.matchMedia(instruction).matches === true ? element : null
+  return W.matchMedia(instruction).matches ? element : null
 }
 
 // Implementation of ":matches-path" rule
