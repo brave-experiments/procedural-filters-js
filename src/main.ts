@@ -1,7 +1,7 @@
 const W = window
 
 const _asHTMLElement = (node: Node): HTMLElement | null => {
-  return (node instanceof HTMLElement) ? node as HTMLElement : null
+  return (node instanceof HTMLElement) ? node : null
 }
 
 const _compileRegEx = (regexText: string): RegExp => {
@@ -28,14 +28,14 @@ const _compileRegEx = (regexText: string): RegExp => {
 //
 // If `exact` is true, then the string case it tested
 // for an exact match (the regex case is not affected).
-const _testMatches = (test: string, value: string, exact = false): boolean => {
+const _testMatches = (test: string, value: string, exact: boolean = false): boolean => {
   if (test[0] === '/') {
     return value.match(_compileRegEx(test)) !== null
   }
   if (test === '') {
     return value.trim() === ''
   }
-  if (exact === true) {
+  if (exact) {
     return value === test
   }
   return value.includes(test)
@@ -95,7 +95,7 @@ const _extractValueMatchRuleFromStr = (text: string,
 // const key = ..., value = ...
 // const [keyTestFunc, valueTestFunc] = _parseKeyValueMatchArg(arg)
 //
-// if (keyTestFunc(key) === true)) {
+// if (keyTestFunc(key))) {
 //   // key matches the test condition
 // }
 const _parseKeyValueMatchRules = (arg: string): KeyValueMatchRules => {
@@ -155,7 +155,7 @@ const operatorCssSelector = (selector: CSSSelector,
   }
 
   const trimmedSelector = selector.trimStart()
-  if (trimmedSelector.startsWith('+') === true) {
+  if (trimmedSelector.startsWith('+')) {
     const subOperator = _stripOperator('+', trimmedSelector)
     if (subOperator === null) {
       return null
@@ -167,7 +167,7 @@ const operatorCssSelector = (selector: CSSSelector,
     return nextSibNode.matches(subOperator) ? nextSibNode : null
   }
 
-  if (trimmedSelector.startsWith('~') === true) {
+  if (trimmedSelector.startsWith('~')) {
     const subOperator = _stripOperator('~', trimmedSelector)
     if (subOperator === null) {
       return null
@@ -179,25 +179,25 @@ const operatorCssSelector = (selector: CSSSelector,
   return Array.from(element.querySelectorAll(':scope ' + trimmedSelector))
 }
 
-const _hasSelectorCase = (selector: CSSSelector,
-                          element: HTMLElement): OperatorResult => {
+const _hasPlainSelectorCase = (selector: CSSSelector,
+                               element: HTMLElement): OperatorResult => {
   return element.matches(selector) ? element : null
 }
 
-const _hasChildRulesCase = (childRules: Rule[],
-                            element: HTMLElement): OperatorResult => {
-  const matches = buildAndApplyFilter(childRules, element)
+const _hasProceduralSelectorCase = (selector: ProceduralSelector,
+                                    element: HTMLElement): OperatorResult => {
+  const matches = compileAndApplyProceduralSelector(selector, element)
   return matches.length === 0 ? null : element
 }
 
 // Implementation of ":has" rule
-const operatorHas = (instruction: CSSSelector | Rule[],
+const operatorHas = (instruction: CSSSelector | ProceduralSelector,
                      element: HTMLElement): OperatorResult => {
   if (W.Array.isArray(instruction)) {
-    return _hasChildRulesCase(instruction, element)
+    return _hasProceduralSelectorCase(instruction, element)
   }
   else {
-    return _hasSelectorCase(instruction, element)
+    return _hasPlainSelectorCase(instruction, element)
   }
 }
 
@@ -209,25 +209,25 @@ const operatorHasText = (instruction: string,
   return valueTest(text) ? element : null
 }
 
-const _notSelectorCase = (selector: CSSSelector,
-                          element: HTMLElement): OperatorResult => {
+const _notPlainSelectorCase = (selector: CSSSelector,
+                               element: HTMLElement): OperatorResult => {
   return element.matches(selector) ? null : element
 }
 
-const _notChildRulesCase = (childRules: Rule[],
-                            element: HTMLElement): OperatorResult => {
-  const matches = buildAndApplyFilter(childRules, element)
+const _notProceduralSelectorCase = (selector: ProceduralSelector,
+                                    element: HTMLElement): OperatorResult => {
+  const matches = compileAndApplyProceduralSelector(selector, element)
   return matches.length === 0 ? element : null
 }
 
 // Implementation of ":not" rule
-const operatorNot = (instruction: CSSSelector | Rule[],
+const operatorNot = (instruction: CSSSelector | ProceduralSelector,
                      element: HTMLElement): OperatorResult => {
   if (Array.isArray(instruction)) {
-    return _notChildRulesCase(instruction, element)
+    return _notProceduralSelectorCase(instruction, element)
   }
   else {
-    return _notSelectorCase(instruction, element)
+    return _notPlainSelectorCase(instruction, element)
   }
 }
 
@@ -236,10 +236,10 @@ const operatorMatchesProperty = (instruction: string,
                                  element: HTMLElement): OperatorResult => {
   const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction)
   for (const [propName, propValue] of Object.entries(element)) {
-    if (keyTest(propName) === false) {
+    if (!keyTest(propName)) {
       continue
     }
-    if (valueTest(propValue) === false) {
+    if (!valueTest(propValue)) {
       continue
     }
     return element
@@ -262,11 +262,11 @@ const operatorMatchesAttr = (instruction: string,
                              element: HTMLElement): OperatorResult => {
   const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction)
   for (const attrName of element.getAttributeNames()) {
-    if (keyTest(attrName) === false) {
+    if (!keyTest(attrName)) {
       continue
     }
     const attrValue = element.getAttribute(attrName)
-    if (attrValue === null || valueTest(attrValue) === false) {
+    if (attrValue === null || !valueTest(attrValue)) {
       continue
     }
     return element
@@ -292,7 +292,7 @@ const operatorMatchesCSS = (beforeOrAfter: string | null,
 // Implementation of ":matches-media" rule
 const operatorMatchesMedia = (instruction: string,
                               element: HTMLElement): OperatorResult => {
-  return W.matchMedia(instruction).matches === true ? element : null
+  return W.matchMedia(instruction).matches ? element : null
 }
 
 // Implementation of ":matches-path" rule
@@ -316,16 +316,16 @@ const _upwardIntCase = (intNeedle: NeedlePosition,
   return (currentElement === null) ? null : _asHTMLElement(currentElement)
 }
 
-const _upwardChildRulesCase = (childRules: Rule[],
-                               element: HTMLElement): OperatorResult => {
-  const childFilter = buildFilter(childRules)
+const _upwardProceduralSelectorCase = (selector: ProceduralSelector,
+                                       element: HTMLElement): OperatorResult => {
+  const childFilter = compileProceduralSelector(selector)
   let needle: ParentNode | HTMLElement | null = element
   while (needle !== null) {
     const currentElement = _asHTMLElement(needle)
     if (currentElement === null) {
       break
     }
-    const matches = applyFilter(childFilter, [currentElement])
+    const matches = applyCompiledSelector(childFilter, [currentElement])
     if (matches.length !== 0) {
       return currentElement
     }
@@ -334,8 +334,8 @@ const _upwardChildRulesCase = (childRules: Rule[],
   return null
 }
 
-const _upwardSelectorCase = (selector: CSSSelector,
-                             element: HTMLElement): OperatorResult => {
+const _upwardPlainSelectorCase = (selector: CSSSelector,
+                                  element: HTMLElement): OperatorResult => {
   let needle: ParentNode | HTMLDocument | null = element
   while (needle !== null) {
     const currentElement = _asHTMLElement(needle)
@@ -351,17 +351,16 @@ const _upwardSelectorCase = (selector: CSSSelector,
 }
 
 // Implementation of ":upward" rule
-const operatorUpward = (instruction: string | Rule[],
+const operatorUpward = (instruction: string | ProceduralSelector,
                         element: HTMLElement): OperatorResult => {
   if (W.Number.isInteger(+instruction)) {
     return _upwardIntCase(+instruction, element)
   }
   else if (W.Array.isArray(instruction)) {
-    return _upwardChildRulesCase(instruction, element)
+    return _upwardProceduralSelectorCase(instruction, element)
   }
   else {
-    // Assume selector case
-    return _upwardSelectorCase(instruction, element)
+    return _upwardPlainSelectorCase(instruction, element)
   }
 }
 
@@ -400,23 +399,23 @@ const ruleTypeToFuncMap: Record<OperatorType, UnboundOperatorFunc> = {
   'xpath': operatorXPath,
 }
 
-export const buildFilter = (ruleList: Rule[]): Filter => {
-  const operatorList = []
-  for (const rule of ruleList) {
-    const anOperatorFunc = ruleTypeToFuncMap[rule.type]
-    const args = [rule.arg]
+const compileProceduralSelector = (operators: ProceduralSelector): CompiledProceduralSelector => {
+  const outputOperatorList = []
+  for (const operator of operators) {
+    const anOperatorFunc = ruleTypeToFuncMap[operator.type]
+    const args = [operator.arg]
     if (anOperatorFunc === undefined) {
-      throw new Error(`Not sure what to do with rule of type ${rule.type}`)
+      throw new Error(`Not sure what to do with operator of type ${operator.type}`)
     }
 
-    operatorList.push({
-      type: rule.type,
+    outputOperatorList.push({
+      type: operator.type,
       func: anOperatorFunc.bind(undefined, ...args),
       args,
     })
   }
 
-  return operatorList
+  return outputOperatorList
 }
 
 // List of operator types that will be either globally true or false
@@ -428,8 +427,8 @@ const fastPathOperatorTypes: OperatorType[] = [
   'matches-path',
 ]
 
-export const applyFilter = (filter: Filter,
-                            initNodes?: HTMLElement[]): HTMLElement[] => {
+const applyCompiledSelector = (selector: CompiledProceduralSelector,
+                               initNodes?: HTMLElement[]): HTMLElement[] => {
   let nodesToConsider: HTMLElement[] = []
   let index = 0
 
@@ -438,7 +437,7 @@ export const applyFilter = (filter: Filter,
   // Case one: we're applying the procedural filter on a set of nodes (instead
   // of the entire document)  In this case, we already know which nodes to
   // consider, easy case.
-  const firstOperator = filter[0]
+  const firstOperator = selector[0]
   const firstOperatorType = firstOperator.type
   const firstArg = firstOperator.args[0]
 
@@ -465,9 +464,9 @@ export const applyFilter = (filter: Filter,
     nodesToConsider = allNodes.filter(_asHTMLElement) as HTMLElement[]
   }
 
-  const numOperators = filter.length
+  const numOperators = selector.length
   for (index; nodesToConsider.length > 0 && index < numOperators; ++index) {
-    const operator = filter[index]
+    const operator = selector[index]
     const operatorFunc = operator.func
     const operatorType = operator.type
 
@@ -503,8 +502,14 @@ export const applyFilter = (filter: Filter,
   return nodesToConsider
 }
 
-export const buildAndApplyFilter = (ruleList: Rule[],
-                                    element: HTMLElement): HTMLElement[] => {
-  const filter = buildFilter(ruleList)
-  return applyFilter(filter, [element])
+const compileAndApplyProceduralSelector = (selector: ProceduralSelector,
+                                           element: HTMLElement): HTMLElement[] => {
+  const compiled = compileProceduralSelector(selector)
+  return applyCompiledSelector(compiled, [element])
+}
+
+export {
+  applyCompiledSelector,
+  compileProceduralSelector,
+  compileAndApplyProceduralSelector,
 }

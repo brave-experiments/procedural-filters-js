@@ -1,3 +1,4 @@
-export declare const buildFilter: (ruleList: Rule[]) => Filter;
-export declare const applyFilter: (filter: Filter, initNodes?: HTMLElement[]) => HTMLElement[];
-export declare const buildAndApplyFilter: (ruleList: Rule[], element: HTMLElement) => HTMLElement[];
+declare const compileProceduralSelector: (operators: ProceduralSelector) => CompiledProceduralSelector;
+declare const applyCompiledSelector: (selector: CompiledProceduralSelector, initNodes?: HTMLElement[]) => HTMLElement[];
+declare const compileAndApplyProceduralSelector: (selector: ProceduralSelector, element: HTMLElement) => HTMLElement[];
+export { applyCompiledSelector, compileProceduralSelector, compileAndApplyProceduralSelector, };

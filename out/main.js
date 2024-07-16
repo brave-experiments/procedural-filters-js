@@ -155,20 +155,20 @@ const operatorCssSelector = (selector, element) => {
     }
     return Array.from(element.querySelectorAll(':scope ' + trimmedSelector));
 };
-const _hasSelectorCase = (selector, element) => {
+const _hasPlainSelectorCase = (selector, element) => {
     return element.matches(selector) ? element : null;
 };
-const _hasChildRulesCase = (childRules, element) => {
-    const matches = buildAndApplyFilter(childRules, element);
+const _hasProceduralSelectorCase = (selector, element) => {
+    const matches = compileAndApplyProceduralSelector(selector, element);
     return matches.length === 0 ? null : element;
 };
 // Implementation of ":has" rule
 const operatorHas = (instruction, element) => {
     if (W.Array.isArray(instruction)) {
-        return _hasChildRulesCase(instruction, element);
+        return _hasProceduralSelectorCase(instruction, element);
     }
     else {
-        return _hasSelectorCase(instruction, element);
+        return _hasPlainSelectorCase(instruction, element);
     }
 };
 // Implementation of ":has-text" rule
@@ -177,20 +177,20 @@ const operatorHasText = (instruction, element) => {
     const valueTest = _extractValueMatchRuleFromStr(instruction);
     return valueTest(text) ? element : null;
 };
-const _notSelectorCase = (selector, element) => {
+const _notPlainSelectorCase = (selector, element) => {
     return element.matches(selector) ? null : element;
 };
-const _notChildRulesCase = (childRules, element) => {
-    const matches = buildAndApplyFilter(childRules, element);
+const _notProceduralSelectorCase = (selector, element) => {
+    const matches = compileAndApplyProceduralSelector(selector, element);
     return matches.length === 0 ? element : null;
 };
 // Implementation of ":not" rule
 const operatorNot = (instruction, element) => {
     if (Array.isArray(instruction)) {
-        return _notChildRulesCase(instruction, element);
+        return _notProceduralSelectorCase(instruction, element);
     }
     else {
-        return _notSelectorCase(instruction, element);
+        return _notPlainSelectorCase(instruction, element);
     }
 };
 // Implementation of ":matches-property" rule
@@ -263,15 +263,15 @@ const _upwardIntCase = (intNeedle, element) => {
     }
     return (currentElement === null) ? null : _asHTMLElement(currentElement);
 };
-const _upwardChildRulesCase = (childRules, element) => {
-    const childFilter = buildFilter(childRules);
+const _upwardProceduralSelectorCase = (selector, element) => {
+    const childFilter = compileProceduralSelector(selector);
     let needle = element;
     while (needle !== null) {
         const currentElement = _asHTMLElement(needle);
         if (currentElement === null) {
             break;
         }
-        const matches = applyFilter(childFilter, [currentElement]);
+        const matches = applyCompiledSelector(childFilter, [currentElement]);
         if (matches.length !== 0) {
             return currentElement;
         }
@@ -279,7 +279,7 @@ const _upwardChildRulesCase = (childRules, element) => {
     }
     return null;
 };
-const _upwardSelectorCase = (selector, element) => {
+const _upwardPlainSelectorCase = (selector, element) => {
     let needle = element;
     while (needle !== null) {
         const currentElement = _asHTMLElement(needle);
@@ -299,11 +299,10 @@ const operatorUpward = (instruction, element) => {
         return _upwardIntCase(+instruction, element);
     }
     else if (W.Array.isArray(instruction)) {
-        return _upwardChildRulesCase(instruction, element);
+        return _upwardProceduralSelectorCase(instruction, element);
     }
     else {
-        // Assume selector case
-        return _upwardSelectorCase(instruction, element);
+        return _upwardPlainSelectorCase(instruction, element);
     }
 };
 // Implementation of ":xpath" rule
@@ -336,21 +335,21 @@ const ruleTypeToFuncMap = {
     'upward': operatorUpward,
     'xpath': operatorXPath,
 };
-export const buildFilter = (ruleList) => {
-    const operatorList = [];
-    for (const rule of ruleList) {
-        const anOperatorFunc = ruleTypeToFuncMap[rule.type];
-        const args = [rule.arg];
+const compileProceduralSelector = (operators) => {
+    const outputOperatorList = [];
+    for (const operator of operators) {
+        const anOperatorFunc = ruleTypeToFuncMap[operator.type];
+        const args = [operator.arg];
         if (anOperatorFunc === undefined) {
-            throw new Error(`Not sure what to do with rule of type ${rule.type}`);
+            throw new Error(`Not sure what to do with operator of type ${operator.type}`);
         }
-        operatorList.push({
-            type: rule.type,
+        outputOperatorList.push({
+            type: operator.type,
             func: anOperatorFunc.bind(undefined, ...args),
             args,
         });
     }
-    return operatorList;
+    return outputOperatorList;
 };
 // List of operator types that will be either globally true or false
 // independent of the passed element. We use this list to optimize
@@ -360,7 +359,7 @@ const fastPathOperatorTypes = [
     'matches-media',
     'matches-path',
 ];
-export const applyFilter = (filter, initNodes) => {
+const applyCompiledSelector = (selector, initNodes) => {
     let nodesToConsider = [];
     let index = 0;
     // A couple of special cases to consider.
@@ -368,7 +367,7 @@ export const applyFilter = (filter, initNodes) => {
     // Case one: we're applying the procedural filter on a set of nodes (instead
     // of the entire document)  In this case, we already know which nodes to
     // consider, easy case.
-    const firstOperator = filter[0];
+    const firstOperator = selector[0];
     const firstOperatorType = firstOperator.type;
     const firstArg = firstOperator.args[0];
     if (initNodes !== undefined) {
@@ -393,9 +392,9 @@ export const applyFilter = (filter, initNodes) => {
         const allNodes = W.Array.from(W.document.all);
         nodesToConsider = allNodes.filter(_asHTMLElement);
     }
-    const numOperators = filter.length;
+    const numOperators = selector.length;
     for (index; nodesToConsider.length > 0 && index < numOperators; ++index) {
-        const operator = filter[index];
+        const operator = selector[index];
         const operatorFunc = operator.func;
         const operatorType = operator.type;
         // Note that we special case the :matches-path case here, since if
@@ -427,7 +426,8 @@ export const applyFilter = (filter, initNodes) => {
     }
     return nodesToConsider;
 };
-export const buildAndApplyFilter = (ruleList, element) => {
-    const filter = buildFilter(ruleList);
-    return applyFilter(filter, [element]);
+const compileAndApplyProceduralSelector = (selector, element) => {
+    const compiled = compileProceduralSelector(selector);
+    return applyCompiledSelector(compiled, [element]);
 };
+export { applyCompiledSelector, compileProceduralSelector, compileAndApplyProceduralSelector, };
