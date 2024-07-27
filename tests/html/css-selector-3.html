@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Procedural Filter Tests</title>
+  </head>
+  <body>
+    <section class="child-combinator">
+      <div class="outer">
+        Sponsored
+        <div class="inner" data-expect="hidden"></div>
+        <div class="middle">
+          <div class="inner" data-expect="visible"></div>
+        </div>
+      </div>
+      <div class="outer">
+        Organic
+        <div class="inner" data-expect="visible"></div>
+        <div class="middle">
+          <div class="inner" data-expect="visible"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="descendant-combinator">
+      <div class="outer">
+        Sponsored
+        <div class="inner" data-expect="hidden"></div>
+        <div class="middle">
+          <div class="inner" data-expect="hidden"></div>
+        </div>
+      </div>
+      <div class="outer">
+        Organic
+        <div class="inner" data-expect="visible"></div>
+        <div class="middle">
+          <div class="inner" data-expect="visible"></div>
+        </div>
+      </div>
+    </section>
+    <script>
+      import("/tests.js").then(async mod => {
+        mod.run([
+          {
+            type: "css-selector",
+            arg: ".child-combinator .outer"
+          },
+          {
+            type: "has-text",
+            arg: "Sponsored"
+          },
+          {
+            type: "css-selector",
+            arg: " > .inner"
+          }
+        ])
+        mod.run([
+          {
+            type: "css-selector",
+            arg: ".descendant-combinator .outer"
+          },
+          {
+            type: "has-text",
+            arg: "Sponsored"
+          },
+          {
+            type: "css-selector",
+            arg: " .inner"
+          }
+        ])
+      })
+    </script>
+  </body>
+</html>
