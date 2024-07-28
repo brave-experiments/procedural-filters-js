@@ -143,6 +143,12 @@ const _nextSiblingElement = (element: HTMLElement): HTMLElement | null => {
   return _asHTMLElement(nextSibling)
 }
 
+const _allChildren = (element: HTMLElement): HTMLElement[] => {
+  return W.Array.from(element.children)
+    .map(e => _asHTMLElement(e))
+    .filter(e => e !== null) as HTMLElement[]
+}
+
 // Implementation of ":css-selector" rule
 const operatorCssSelector = (selector: CSSSelector,
                              element: HTMLElement): OperatorResult => {
@@ -166,8 +172,7 @@ const operatorCssSelector = (selector: CSSSelector,
     }
     return nextSibNode.matches(subOperator) ? nextSibNode : null
   }
-
-  if (trimmedSelector.startsWith('~')) {
+  else if (trimmedSelector.startsWith('~')) {
     const subOperator = _stripOperator('~', trimmedSelector)
     if (subOperator === null) {
       return null
@@ -175,8 +180,24 @@ const operatorCssSelector = (selector: CSSSelector,
     const allSiblingNodes = _allOtherSiblings(element)
     return allSiblingNodes.filter(x => x.matches(subOperator))
   }
+  else if (trimmedSelector.startsWith('>')) {
+    const subOperator = _stripOperator('>', trimmedSelector)
+    if (subOperator === null) {
+      return null
+    }
+    const allChildNodes = _allChildren(element)
+    return allChildNodes.filter(x => x.matches(subOperator))
+  }
+  else if (selector.startsWith(' ')) {
+    return Array.from(element.querySelectorAll(':scope ' + trimmedSelector))
+  }
 
-  return Array.from(element.querySelectorAll(':scope ' + trimmedSelector))
+  if (element.matches(selector)) {
+    return [element]
+  }
+  else {
+    return null
+  }
 }
 
 const _hasPlainSelectorCase = (selector: CSSSelector,
