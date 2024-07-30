@@ -14,7 +14,7 @@ type CSSValue = string
 
 type OperatorType = string
 type OperatorArg = CSSSelector | ProceduralSelector | string
-type OperatorResult = HTMLElement | HTMLElement[] | null
+type OperatorResult = HTMLElement[]
 
 type UnboundStringFunc = (arg: string, element: HTMLElement) => OperatorResult
 type UnboundChildRuleOrStringFunc = (
