@@ -21,3 +21,7 @@ jobs:
         run: npm run build
       - name: Check for diffs
         run: git diff --no-ext-diff --exit-code
+      - name: Install browser for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Run tests
+        run: npm run test
