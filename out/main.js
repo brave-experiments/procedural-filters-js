@@ -130,6 +130,11 @@ const _allChildren = (element) => {
         .map(e => _asHTMLElement(e))
         .filter(e => e !== null);
 };
+const _allChildrenRecursive = (element) => {
+    return W.Array.from(element.querySelectorAll(':scope *'))
+        .map(e => _asHTMLElement(e))
+        .filter(e => e !== null);
+};
 // Implementation of ":css-selector" rule
 const operatorCssSelector = (selector, element) => {
     const _stripOperator = (operator, selector) => {
@@ -180,7 +185,12 @@ const _hasPlainSelectorCase = (selector, element) => {
     return element.matches(selector) ? element : null;
 };
 const _hasProceduralSelectorCase = (selector, element) => {
-    const matches = compileAndApplyProceduralSelector(selector, element);
+    var _a;
+    const shouldBeGreedy = ((_a = selector[0]) === null || _a === void 0 ? void 0 : _a.type) !== 'css-selector';
+    const initElements = shouldBeGreedy
+        ? _allChildrenRecursive(element)
+        : [element];
+    const matches = compileAndApplyProceduralSelector(selector, initElements);
     return matches.length === 0 ? null : element;
 };
 // Implementation of ":has" rule
@@ -202,7 +212,7 @@ const _notPlainSelectorCase = (selector, element) => {
     return element.matches(selector) ? null : element;
 };
 const _notProceduralSelectorCase = (selector, element) => {
-    const matches = compileAndApplyProceduralSelector(selector, element);
+    const matches = compileAndApplyProceduralSelector(selector, [element]);
     return matches.length === 0 ? element : null;
 };
 // Implementation of ":not" rule
@@ -447,8 +457,8 @@ const applyCompiledSelector = (selector, initNodes) => {
     }
     return nodesToConsider;
 };
-const compileAndApplyProceduralSelector = (selector, element) => {
+const compileAndApplyProceduralSelector = (selector, initElements) => {
     const compiled = compileProceduralSelector(selector);
-    return applyCompiledSelector(compiled, [element]);
+    return applyCompiledSelector(compiled, initElements);
 };
 export { applyCompiledSelector, compileProceduralSelector, compileAndApplyProceduralSelector, };
