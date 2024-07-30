@@ -32,7 +32,7 @@ const _testMatches = (test, value, exact = false) => {
     if (test === '') {
         return value.trim() === '';
     }
-    if (exact === true) {
+    if (exact) {
         return value === test;
     }
     return value.includes(test);
@@ -81,7 +81,7 @@ const _extractValueMatchRuleFromStr = (text, needlePosition = 0) => {
 // const key = ..., value = ...
 // const [keyTestFunc, valueTestFunc] = _parseKeyValueMatchArg(arg)
 //
-// if (keyTestFunc(key) === true)) {
+// if (keyTestFunc(key))) {
 //   // key matches the test condition
 // }
 const _parseKeyValueMatchRules = (arg) => {
@@ -125,6 +125,11 @@ const _nextSiblingElement = (element) => {
     }
     return _asHTMLElement(nextSibling);
 };
+const _allChildren = (element) => {
+    return W.Array.from(element.children)
+        .map(e => _asHTMLElement(e))
+        .filter(e => e !== null);
+};
 // Implementation of ":css-selector" rule
 const operatorCssSelector = (selector, element) => {
     const _stripOperator = (operator, selector) => {
@@ -134,7 +139,7 @@ const operatorCssSelector = (selector, element) => {
         return selector.replace(operator, '').trimStart();
     };
     const trimmedSelector = selector.trimStart();
-    if (trimmedSelector.startsWith('+') === true) {
+    if (trimmedSelector.startsWith('+')) {
         const subOperator = _stripOperator('+', trimmedSelector);
         if (subOperator === null) {
             return null;
@@ -145,7 +150,7 @@ const operatorCssSelector = (selector, element) => {
         }
         return nextSibNode.matches(subOperator) ? nextSibNode : null;
     }
-    if (trimmedSelector.startsWith('~') === true) {
+    else if (trimmedSelector.startsWith('~')) {
         const subOperator = _stripOperator('~', trimmedSelector);
         if (subOperator === null) {
             return null;
@@ -153,7 +158,23 @@ const operatorCssSelector = (selector, element) => {
         const allSiblingNodes = _allOtherSiblings(element);
         return allSiblingNodes.filter(x => x.matches(subOperator));
     }
-    return Array.from(element.querySelectorAll(':scope ' + trimmedSelector));
+    else if (trimmedSelector.startsWith('>')) {
+        const subOperator = _stripOperator('>', trimmedSelector);
+        if (subOperator === null) {
+            return null;
+        }
+        const allChildNodes = _allChildren(element);
+        return allChildNodes.filter(x => x.matches(subOperator));
+    }
+    else if (selector.startsWith(' ')) {
+        return Array.from(element.querySelectorAll(':scope ' + trimmedSelector));
+    }
+    if (element.matches(selector)) {
+        return [element];
+    }
+    else {
+        return null;
+    }
 };
 const _hasPlainSelectorCase = (selector, element) => {
     return element.matches(selector) ? element : null;
@@ -197,10 +218,10 @@ const operatorNot = (instruction, element) => {
 const operatorMatchesProperty = (instruction, element) => {
     const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction);
     for (const [propName, propValue] of Object.entries(element)) {
-        if (keyTest(propName) === false) {
+        if (!keyTest(propName)) {
             continue;
         }
-        if (valueTest(propValue) === false) {
+        if (!valueTest(propValue)) {
             continue;
         }
         return element;
@@ -219,11 +240,11 @@ const operatorMinTextLength = (instruction, element) => {
 const operatorMatchesAttr = (instruction, element) => {
     const [keyTest, valueTest] = _parseKeyValueMatchRules(instruction);
     for (const attrName of element.getAttributeNames()) {
-        if (keyTest(attrName) === false) {
+        if (!keyTest(attrName)) {
             continue;
         }
         const attrValue = element.getAttribute(attrName);
-        if (attrValue === null || valueTest(attrValue) === false) {
+        if (attrValue === null || !valueTest(attrValue)) {
             continue;
         }
         return element;
@@ -244,7 +265,7 @@ const operatorMatchesCSS = (beforeOrAfter, cssInstruction, element) => {
 };
 // Implementation of ":matches-media" rule
 const operatorMatchesMedia = (instruction, element) => {
-    return W.matchMedia(instruction).matches === true ? element : null;
+    return W.matchMedia(instruction).matches ? element : null;
 };
 // Implementation of ":matches-path" rule
 const operatorMatchesPath = (instruction, element) => {
