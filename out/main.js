@@ -147,18 +147,18 @@ const operatorCssSelector = (selector, element) => {
     if (trimmedSelector.startsWith('+')) {
         const subOperator = _stripOperator('+', trimmedSelector);
         if (subOperator === null) {
-            return null;
+            return [];
         }
         const nextSibNode = _nextSiblingElement(element);
         if (nextSibNode === null) {
-            return null;
+            return [];
         }
-        return nextSibNode.matches(subOperator) ? nextSibNode : null;
+        return nextSibNode.matches(subOperator) ? [nextSibNode] : [];
     }
     else if (trimmedSelector.startsWith('~')) {
         const subOperator = _stripOperator('~', trimmedSelector);
         if (subOperator === null) {
-            return null;
+            return [];
         }
         const allSiblingNodes = _allOtherSiblings(element);
         return allSiblingNodes.filter(x => x.matches(subOperator));
@@ -166,7 +166,7 @@ const operatorCssSelector = (selector, element) => {
     else if (trimmedSelector.startsWith('>')) {
         const subOperator = _stripOperator('>', trimmedSelector);
         if (subOperator === null) {
-            return null;
+            return [];
         }
         const allChildNodes = _allChildren(element);
         return allChildNodes.filter(x => x.matches(subOperator));
@@ -178,11 +178,11 @@ const operatorCssSelector = (selector, element) => {
         return [element];
     }
     else {
-        return null;
+        return [];
     }
 };
 const _hasPlainSelectorCase = (selector, element) => {
-    return element.matches(selector) ? element : null;
+    return element.matches(selector) ? [element] : [];
 };
 const _hasProceduralSelectorCase = (selector, element) => {
     var _a;
@@ -191,7 +191,7 @@ const _hasProceduralSelectorCase = (selector, element) => {
         ? _allChildrenRecursive(element)
         : [element];
     const matches = compileAndApplyProceduralSelector(selector, initElements);
-    return matches.length === 0 ? null : element;
+    return matches.length === 0 ? [] : [element];
 };
 // Implementation of ":has" rule
 const operatorHas = (instruction, element) => {
@@ -206,14 +206,14 @@ const operatorHas = (instruction, element) => {
 const operatorHasText = (instruction, element) => {
     const text = element.innerText;
     const valueTest = _extractValueMatchRuleFromStr(instruction);
-    return valueTest(text) ? element : null;
+    return valueTest(text) ? [element] : [];
 };
 const _notPlainSelectorCase = (selector, element) => {
-    return element.matches(selector) ? null : element;
+    return element.matches(selector) ? [] : [element];
 };
 const _notProceduralSelectorCase = (selector, element) => {
     const matches = compileAndApplyProceduralSelector(selector, [element]);
-    return matches.length === 0 ? element : null;
+    return matches.length === 0 ? [element] : [];
 };
 // Implementation of ":not" rule
 const operatorNot = (instruction, element) => {
@@ -234,9 +234,9 @@ const operatorMatchesProperty = (instruction, element) => {
         if (!valueTest(propValue)) {
             continue;
         }
-        return element;
+        return [element];
     }
-    return null;
+    return [];
 };
 // Implementation of ":min-text-length" rule
 const operatorMinTextLength = (instruction, element) => {
@@ -244,7 +244,7 @@ const operatorMinTextLength = (instruction, element) => {
     if (minLength === W.NaN) {
         throw new Error(`min-text-length: Invalid arg, ${instruction}`);
     }
-    return element.innerText.trim().length >= minLength ? element : null;
+    return element.innerText.trim().length >= minLength ? [element] : [];
 };
 // Implementation of ":matches-attr" rule
 const operatorMatchesAttr = (instruction, element) => {
@@ -257,9 +257,9 @@ const operatorMatchesAttr = (instruction, element) => {
         if (attrValue === null || !valueTest(attrValue)) {
             continue;
         }
-        return element;
+        return [element];
     }
-    return null;
+    return [];
 };
 // Implementation of ":matches-css-*" rules
 const operatorMatchesCSS = (beforeOrAfter, cssInstruction, element) => {
@@ -269,19 +269,19 @@ const operatorMatchesCSS = (beforeOrAfter, cssInstruction, element) => {
     if (styleValue === undefined) {
         // We're querying for a style property that doesn't exist, which
         // trivially doesn't match then.
-        return null;
+        return [];
     }
-    return expectedVal === styleValue ? element : null;
+    return expectedVal === styleValue ? [element] : [];
 };
 // Implementation of ":matches-media" rule
 const operatorMatchesMedia = (instruction, element) => {
-    return W.matchMedia(instruction).matches ? element : null;
+    return W.matchMedia(instruction).matches ? [element] : [];
 };
 // Implementation of ":matches-path" rule
 const operatorMatchesPath = (instruction, element) => {
     const pathAndQuery = W.location.pathname + W.location.search;
     const matchRule = _extractValueMatchRuleFromStr(instruction);
-    return matchRule(pathAndQuery) ? element : null;
+    return matchRule(pathAndQuery) ? [element] : [];
 };
 const _upwardIntCase = (intNeedle, element) => {
     if (intNeedle < 1 || intNeedle >= 256) {
@@ -292,7 +292,13 @@ const _upwardIntCase = (intNeedle, element) => {
         currentElement = currentElement.parentNode;
         intNeedle -= 1;
     }
-    return (currentElement === null) ? null : _asHTMLElement(currentElement);
+    if (currentElement === null) {
+        return [];
+    }
+    else {
+        const htmlElement = _asHTMLElement(currentElement);
+        return (htmlElement === null) ? [] : [htmlElement];
+    }
 };
 const _upwardProceduralSelectorCase = (selector, element) => {
     const childFilter = compileProceduralSelector(selector);
@@ -304,11 +310,11 @@ const _upwardProceduralSelectorCase = (selector, element) => {
         }
         const matches = applyCompiledSelector(childFilter, [currentElement]);
         if (matches.length !== 0) {
-            return currentElement;
+            return [currentElement];
         }
         needle = currentElement.parentNode;
     }
-    return null;
+    return [];
 };
 const _upwardPlainSelectorCase = (selector, element) => {
     let needle = element;
@@ -318,11 +324,11 @@ const _upwardPlainSelectorCase = (selector, element) => {
             break;
         }
         if (currentElement.matches(selector)) {
-            return currentElement;
+            return [currentElement];
         }
         needle = currentElement.parentNode;
     }
-    return null;
+    return [];
 };
 // Implementation of ":upward" rule
 const operatorUpward = (instruction, element) => {
@@ -432,7 +438,7 @@ const applyCompiledSelector = (selector, initNodes) => {
         // if it passes for one element, then it will pass for all elements.
         if (fastPathOperatorTypes.includes(operatorType)) {
             const firstNode = nodesToConsider[0];
-            if (operatorFunc(firstNode) === null) {
+            if (operatorFunc(firstNode).length === 0) {
                 nodesToConsider = [];
             }
             // Note that unless we've taken the if-true branch above, then
@@ -443,15 +449,7 @@ const applyCompiledSelector = (selector, initNodes) => {
         let newNodesToConsider = [];
         for (const aNode of nodesToConsider) {
             const result = operatorFunc(aNode);
-            if (result === null) {
-                continue;
-            }
-            else if (Array.isArray(result)) {
-                newNodesToConsider = newNodesToConsider.concat(result);
-            }
-            else {
-                newNodesToConsider.push(result);
-            }
+            newNodesToConsider = newNodesToConsider.concat(result);
         }
         nodesToConsider = newNodesToConsider;
     }
