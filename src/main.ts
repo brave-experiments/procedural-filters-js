@@ -149,6 +149,12 @@ const _allChildren = (element: HTMLElement): HTMLElement[] => {
     .filter(e => e !== null) as HTMLElement[]
 }
 
+const _allChildrenRecursive = (element: HTMLElement): HTMLElement[] => {
+  return W.Array.from(element.querySelectorAll(':scope *'))
+    .map(e => _asHTMLElement(e))
+    .filter(e => e !== null) as HTMLElement[]
+}
+
 // Implementation of ":css-selector" rule
 const operatorCssSelector = (selector: CSSSelector,
                              element: HTMLElement): OperatorResult => {
@@ -207,7 +213,11 @@ const _hasPlainSelectorCase = (selector: CSSSelector,
 
 const _hasProceduralSelectorCase = (selector: ProceduralSelector,
                                     element: HTMLElement): OperatorResult => {
-  const matches = compileAndApplyProceduralSelector(selector, element)
+  const shouldBeGreedy = selector[0]?.type !== 'css-selector'
+  const initElements = shouldBeGreedy
+    ? _allChildrenRecursive(element)
+    : [element]
+  const matches = compileAndApplyProceduralSelector(selector, initElements)
   return matches.length === 0 ? null : element
 }
 
@@ -237,7 +247,7 @@ const _notPlainSelectorCase = (selector: CSSSelector,
 
 const _notProceduralSelectorCase = (selector: ProceduralSelector,
                                     element: HTMLElement): OperatorResult => {
-  const matches = compileAndApplyProceduralSelector(selector, element)
+  const matches = compileAndApplyProceduralSelector(selector, [element])
   return matches.length === 0 ? element : null
 }
 
@@ -524,9 +534,9 @@ const applyCompiledSelector = (selector: CompiledProceduralSelector,
 }
 
 const compileAndApplyProceduralSelector = (selector: ProceduralSelector,
-                                           element: HTMLElement): HTMLElement[] => {
+                                           initElements: HTMLElement[]): HTMLElement[] => {
   const compiled = compileProceduralSelector(selector)
-  return applyCompiledSelector(compiled, [element])
+  return applyCompiledSelector(compiled, initElements)
 }
 
 export {

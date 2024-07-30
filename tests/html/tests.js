@@ -48,3 +48,15 @@ export const run = (ruleList, pollingInterval = 0) => {
     W.clearInterval(intervalId)
   }
 }
+
+// `testResult()` in the console will return whether or not the tests have passed.
+window.testResult = () => {
+  const hidden = Array.from(document.querySelectorAll('[data-expect=hidden]')).map(e => {
+    return window.getComputedStyle(e).display === 'none'
+  }).every(e => e)
+  const visible = Array.from(document.querySelectorAll('[data-expect=visible]')).map(e => {
+    return window.getComputedStyle(e).display !== 'none'
+  }).every(e => e)
+
+  return hidden && visible
+}
