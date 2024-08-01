@@ -1,0 +1,14 @@
+declare const operatorCssSelector: (selector: CSSSelector, element: HTMLElement) => OperatorResult;
+declare const operatorHas: (instruction: CSSSelector | ProceduralSelector, element: HTMLElement) => OperatorResult;
+declare const operatorHasText: (instruction: string, element: HTMLElement) => OperatorResult;
+declare const operatorNot: (instruction: CSSSelector | ProceduralSelector, element: HTMLElement) => OperatorResult;
+declare const operatorMatchesProperty: (instruction: string, element: HTMLElement) => OperatorResult;
+declare const operatorMinTextLength: (instruction: string, element: HTMLElement) => OperatorResult;
+declare const operatorMatchesAttr: (instruction: string, element: HTMLElement) => OperatorResult;
+declare const operatorMatchesCSS: (beforeOrAfter: string | null, cssInstruction: string, element: HTMLElement) => OperatorResult;
+declare const operatorMatchesMedia: (instruction: string, element: HTMLElement) => OperatorResult;
+declare const operatorMatchesPath: (instruction: string, element: HTMLElement) => OperatorResult;
+declare const operatorUpward: (instruction: string | ProceduralSelector, element: HTMLElement) => OperatorResult;
+declare const operatorXPath: (instruction: string, element: HTMLElement) => HTMLElement[];
+declare const ruleTypeToFuncMap: Record<OperatorType, UnboundOperatorFunc>;
+export { operatorCssSelector, operatorHas, operatorHasText, operatorNot, operatorMatchesProperty, operatorMinTextLength, operatorMatchesAttr, operatorMatchesCSS, operatorMatchesMedia, operatorMatchesPath, operatorUpward, operatorXPath, ruleTypeToFuncMap, };
