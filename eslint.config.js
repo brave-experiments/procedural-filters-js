@@ -11,7 +11,7 @@ export default tseslint.config(
   stylistic.configs['recommended-flat'],
   {
     rules: {
-      'max-len': ['error', 80, {
+      'max-len': ['error', 100, {
         'ignoreStrings': true,
       }],
       '@typescript-eslint/no-explicit-any': 'off',

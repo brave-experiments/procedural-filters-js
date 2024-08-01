@@ -135,17 +135,17 @@ const _allChildrenRecursive = (element) => {
         .map(e => _asHTMLElement(e))
         .filter(e => e !== null);
 };
+const _stripCssOperator = (operator, selector) => {
+    if (selector[0] !== operator) {
+        throw new Error(`Expected to find ${operator} in initial position of "${selector}`);
+    }
+    return selector.replace(operator, '').trimStart();
+};
 // Implementation of ":css-selector" rule
 const operatorCssSelector = (selector, element) => {
-    const _stripOperator = (operator, selector) => {
-        if (selector[0] !== operator) {
-            throw new Error(`Expected to find ${operator} in initial position of "${selector}`);
-        }
-        return selector.replace(operator, '').trimStart();
-    };
     const trimmedSelector = selector.trimStart();
     if (trimmedSelector.startsWith('+')) {
-        const subOperator = _stripOperator('+', trimmedSelector);
+        const subOperator = _stripCssOperator('+', trimmedSelector);
         if (subOperator === null) {
             return [];
         }
@@ -156,7 +156,7 @@ const operatorCssSelector = (selector, element) => {
         return nextSibNode.matches(subOperator) ? [nextSibNode] : [];
     }
     else if (trimmedSelector.startsWith('~')) {
-        const subOperator = _stripOperator('~', trimmedSelector);
+        const subOperator = _stripCssOperator('~', trimmedSelector);
         if (subOperator === null) {
             return [];
         }
@@ -164,7 +164,7 @@ const operatorCssSelector = (selector, element) => {
         return allSiblingNodes.filter(x => x.matches(subOperator));
     }
     else if (trimmedSelector.startsWith('>')) {
-        const subOperator = _stripOperator('>', trimmedSelector);
+        const subOperator = _stripCssOperator('>', trimmedSelector);
         if (subOperator === null) {
             return [];
         }
@@ -177,9 +177,7 @@ const operatorCssSelector = (selector, element) => {
     if (element.matches(selector)) {
         return [element];
     }
-    else {
-        return [];
-    }
+    return [];
 };
 const _hasPlainSelectorCase = (selector, element) => {
     return element.matches(selector) ? [element] : [];
@@ -396,7 +394,7 @@ const fastPathOperatorTypes = [
     'matches-media',
     'matches-path',
 ];
-const applyCompiledSelector = (selector, initNodes) => {
+const _determineInitNodesAndIndex = (selector, initNodes) => {
     let nodesToConsider = [];
     let index = 0;
     // A couple of special cases to consider.
@@ -429,6 +427,11 @@ const applyCompiledSelector = (selector, initNodes) => {
         const allNodes = W.Array.from(W.document.all);
         nodesToConsider = allNodes.filter(_asHTMLElement);
     }
+    return [index, nodesToConsider];
+};
+const applyCompiledSelector = (selector, initNodes) => {
+    const initState = _determineInitNodesAndIndex(selector, initNodes);
+    let [index, nodesToConsider] = initState;
     const numOperators = selector.length;
     for (index; nodesToConsider.length > 0 && index < numOperators; ++index) {
         const operator = selector[index];

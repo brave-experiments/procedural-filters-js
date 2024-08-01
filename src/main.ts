@@ -28,7 +28,7 @@ const _compileRegEx = (regexText: string): RegExp => {
 //
 // If `exact` is true, then the string case it tested
 // for an exact match (the regex case is not affected).
-const _testMatches = (test: string, value: string, exact: boolean = false): boolean => {
+const _testMatches = (test: string, value: string, exact = false): boolean => {
   if (test[0] === '/') {
     return value.match(_compileRegEx(test)) !== null
   }
@@ -155,20 +155,20 @@ const _allChildrenRecursive = (element: HTMLElement): HTMLElement[] => {
     .filter(e => e !== null) as HTMLElement[]
 }
 
+const _stripCssOperator = (operator: string, selector: string) => {
+  if (selector[0] !== operator) {
+    throw new Error(
+      `Expected to find ${operator} in initial position of "${selector}`)
+  }
+  return selector.replace(operator, '').trimStart()
+}
+
 // Implementation of ":css-selector" rule
 const operatorCssSelector = (selector: CSSSelector,
                              element: HTMLElement): OperatorResult => {
-  const _stripOperator = (operator: string, selector: string) => {
-    if (selector[0] !== operator) {
-      throw new Error(
-        `Expected to find ${operator} in initial position of "${selector}`)
-    }
-    return selector.replace(operator, '').trimStart()
-  }
-
   const trimmedSelector = selector.trimStart()
   if (trimmedSelector.startsWith('+')) {
-    const subOperator = _stripOperator('+', trimmedSelector)
+    const subOperator = _stripCssOperator('+', trimmedSelector)
     if (subOperator === null) {
       return []
     }
@@ -179,7 +179,7 @@ const operatorCssSelector = (selector: CSSSelector,
     return nextSibNode.matches(subOperator) ? [nextSibNode] : []
   }
   else if (trimmedSelector.startsWith('~')) {
-    const subOperator = _stripOperator('~', trimmedSelector)
+    const subOperator = _stripCssOperator('~', trimmedSelector)
     if (subOperator === null) {
       return []
     }
@@ -187,7 +187,7 @@ const operatorCssSelector = (selector: CSSSelector,
     return allSiblingNodes.filter(x => x.matches(subOperator))
   }
   else if (trimmedSelector.startsWith('>')) {
-    const subOperator = _stripOperator('>', trimmedSelector)
+    const subOperator = _stripCssOperator('>', trimmedSelector)
     if (subOperator === null) {
       return []
     }
@@ -201,9 +201,7 @@ const operatorCssSelector = (selector: CSSSelector,
   if (element.matches(selector)) {
     return [element]
   }
-  else {
-    return []
-  }
+  return []
 }
 
 const _hasPlainSelectorCase = (selector: CSSSelector,
@@ -346,7 +344,8 @@ const _upwardIntCase = (intNeedle: NeedlePosition,
   }
   if (currentElement === null) {
     return []
-  } else {
+  }
+  else {
     const htmlElement = _asHTMLElement(currentElement)
     return (htmlElement === null) ? [] : [htmlElement]
   }
@@ -463,8 +462,8 @@ const fastPathOperatorTypes: OperatorType[] = [
   'matches-path',
 ]
 
-const applyCompiledSelector = (selector: CompiledProceduralSelector,
-                               initNodes?: HTMLElement[]): HTMLElement[] => {
+const _determineInitNodesAndIndex = (selector: CompiledProceduralSelector,
+                                     initNodes?: HTMLElement[]): [number, HTMLElement[]] => {
   let nodesToConsider: HTMLElement[] = []
   let index = 0
 
@@ -499,6 +498,13 @@ const applyCompiledSelector = (selector: CompiledProceduralSelector,
     const allNodes = W.Array.from(W.document.all)
     nodesToConsider = allNodes.filter(_asHTMLElement) as HTMLElement[]
   }
+  return [index, nodesToConsider]
+}
+
+const applyCompiledSelector = (selector: CompiledProceduralSelector,
+                               initNodes?: HTMLElement[]): HTMLElement[] => {
+  const initState = _determineInitNodesAndIndex(selector, initNodes)
+  let [index, nodesToConsider] = initState
 
   const numOperators = selector.length
   for (index; nodesToConsider.length > 0 && index < numOperators; ++index) {
