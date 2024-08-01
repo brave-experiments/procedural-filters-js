@@ -1,0 +1,16 @@
+declare const _asHTMLElement: (node: Node) => HTMLElement | null;
+declare const _extractValueMatchRuleFromStr: (text: string, needlePosition?: number) => TextMatchRule;
+declare const _parseKeyValueMatchRules: (arg: string) => KeyValueMatchRules;
+declare const _parseCSSInstruction: (arg: string) => [CSSInstruction, CSSValue];
+declare const _allOtherSiblings: (element: HTMLElement) => HTMLElement[];
+declare const _nextSiblingElement: (element: HTMLElement) => HTMLElement | null;
+declare const _allChildren: (element: HTMLElement) => HTMLElement[];
+declare const _stripCssOperator: (operator: string, selector: string) => string;
+declare const _hasPlainSelectorCase: (selector: CSSSelector, element: HTMLElement) => OperatorResult;
+declare const _hasProceduralSelectorCase: (selector: ProceduralSelector, element: HTMLElement) => OperatorResult;
+declare const _notPlainSelectorCase: (selector: CSSSelector, element: HTMLElement) => OperatorResult;
+declare const _notProceduralSelectorCase: (selector: ProceduralSelector, element: HTMLElement) => OperatorResult;
+declare const _upwardIntCase: (intNeedle: NeedlePosition, element: HTMLElement) => OperatorResult;
+declare const _upwardProceduralSelectorCase: (selector: ProceduralSelector, element: HTMLElement) => OperatorResult;
+declare const _upwardPlainSelectorCase: (selector: CSSSelector, element: HTMLElement) => OperatorResult;
+export { _allChildren, _allOtherSiblings, _asHTMLElement, _extractValueMatchRuleFromStr, _hasPlainSelectorCase, _hasProceduralSelectorCase, _nextSiblingElement, _notPlainSelectorCase, _notProceduralSelectorCase, _parseCSSInstruction, _parseKeyValueMatchRules, _stripCssOperator, _upwardIntCase, _upwardPlainSelectorCase, _upwardProceduralSelectorCase, };

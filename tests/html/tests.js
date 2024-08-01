@@ -1,4 +1,4 @@
-import { compileProceduralSelector, applyCompiledSelector } from './procedural-filters.js'
+import { compileProceduralSelector, applyCompiledSelector } from './script/main.js'
 
 const W = window
 
