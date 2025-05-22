@@ -2,6 +2,8 @@
 
 This repo contains JavaScript code used by Brave for procedural filtering (see [brave/brave-core#24688](https://github.com/brave/brave-core/pull/24688)).
 
+It was used for testing the platform-specific procedural filtering implementation in Brave Browser prior to [brave/brave-core#25694](https://github.com/brave/brave-core/pull/25694).
+
 More information about procedural filtering can be found [on the uBlock Origin wiki](https://github.com/gorhill/uBlock/wiki/Procedural-cosmetic-filters).
 
 ## Testing
